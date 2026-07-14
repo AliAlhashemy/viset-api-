@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VISET — Task Types</title>
+<link rel="stylesheet" href="/css/rtl.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:#f3f4f6; }
+  .v-hdr { background:linear-gradient(135deg,#1e1b4b,#312e81); padding:20px 24px; color:#fff; position:relative; }
+  .v-hdr h1 { font-size:20px; font-weight:700; }
+  .v-hdr p { color:#a5b4fc; font-size:13px; margin-top:2px; }
+  .v-nav { display:flex; gap:4px; padding:12px 24px; background:#fff; border-bottom:1px solid #e5e7eb; flex-wrap:wrap; }
+  .v-nav a { text-decoration:none; font-size:13px; font-weight:600; color:#6b7280; padding:6px 14px; border-radius:8px; transition:all .15s; }
+  .v-nav a:hover { background:#eef2ff; color:#4f46e5; }
+  .v-nav a.active { background:#eef2ff; color:#4f46e5; }
+  .v-body { padding:24px; max-width:1000px; margin:0 auto; }
+  .v-card { background:#fff; border-radius:12px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,.06); margin-bottom:16px; }
+  .v-card h2 { font-size:16px; font-weight:700; color:#1f2937; margin-bottom:12px; }
+  .v-table { width:100%; border-collapse:collapse; font-size:13px; }
+  .v-table th { text-align:left; padding:10px 8px; border-bottom:2px solid #e5e7eb; color:#6b7280; font-weight:600; font-size:12px; text-transform:uppercase; }
+  .v-table td { padding:10px 8px; border-bottom:1px solid #f3f4f6; vertical-align:middle; }
+  .v-table tr:hover td { background:#fafbff; }
+  .v-btn { padding:8px 16px; border-radius:8px; border:0; font-weight:600; font-size:12px; cursor:pointer; transition:all .15s; }
+  .v-btn-primary { background:#6366f1; color:#fff; }
+  .v-btn-primary:hover { background:#4f46e5; }
+  .v-btn-sm { padding:4px 10px; font-size:11px; }
+  .v-btn-danger { background:#fee2e2; color:#991b1b; }
+  .v-btn-danger:hover { background:#fecaca; }
+  .v-btn-success { background:#d1fae5; color:#065f46; }
+  .v-btn-success:hover { background:#a7f3d0; }
+  .v-modal { position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:50; display:flex; align-items:center; justify-content:center; }
+  .v-modal-body { background:#fff; border-radius:16px; padding:24px; width:90%; max-width:440px; max-height:80vh; overflow-y:auto; }
+  .v-fgroup { margin-bottom:14px; }
+  .v-fgroup label { display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:4px; }
+  .v-input, .v-select { width:100%; padding:9px 12px; border:1px solid #d1d5db; border-radius:8px; font-size:13px; }
+  .v-input:focus { outline:none; border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.12); }
+  .v-msg { padding:10px 14px; border-radius:8px; font-size:13px; margin-bottom:12px; }
+  .v-msg.success { background:#d1fae5; color:#065f46; }
+  .v-msg.error { background:#fee2e2; color:#991b1b; }
+  .v-flex { display:flex; gap:6px; flex-wrap:wrap; }
+  .v-tag { display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:600; }
+</style>
+</head>
+<body>
+<div x-data="taskTypeManager()">
+  <div class="v-hdr">
+    <h1>📋 <span x-text="VISET.__('admin.task_types')"></span></h1>
+    <p x-text="VISET.__('task_types.subtitle')"></p>
+    <button @click="VISET.toggleLang()" x-text="VISET.locale === 'en' ? 'العربية' : 'English'" style="background:none;border:0;color:#a5b4fc;font-size:12px;cursor:pointer;position:absolute;top:16px;right:24px"></button>
+  </div>
+  <div class="v-nav">
+    <a href="/admin/dashboard.html" x-show="_ready && VISET.can('admin.dashboard')"><span x-text="VISET.__('nav.dashboard')"></span></a>
+    <a href="/admin/workflow.html" x-show="_ready && VISET.can('admin.workflow')"><span x-text="VISET.__('nav.workflow')"></span></a>
+    <a href="/admin/customers.html" x-show="_ready && VISET.can('admin.customers')"><span x-text="VISET.__('nav.customers')"></span></a>
+    <a href="/admin/employees.html" x-show="_ready && VISET.can('admin.employees')"><span x-text="VISET.__('nav.employees')"></span></a>
+    <a href="/admin/departments.html" x-show="_ready && VISET.can('admin.departments')"><span x-text="VISET.__('admin.departments')"></span></a>
+    <a href="/admin/job-titles.html" x-show="_ready && VISET.can('admin.job_titles')"><span x-text="VISET.__('admin.job_titles')"></span></a>
+    <a href="/admin/task-types.html" class="active" x-show="_ready && VISET.can('admin.task_types')"><span x-text="VISET.__('admin.task_types')"></span></a>
+    <a href="/manager/dashboard.html" style="color:#7c3aed;font-weight:600">👤 <span x-text="VISET.__('nav.manager_view')"></span></a>
+    <a href="/tickets.html" x-show="_ready && VISET.can('ticket.view')"><span x-text="VISET.__('nav.tickets')"></span></a>
+    <a href="/admin/reports.html" x-show="_ready && VISET.can('reports.view')"><span x-text="VISET.__('nav.reports')"></span></a>
+    <a href="/" style="margin-left:auto;color:#ef4444">← <span x-text="VISET.__('nav.logout')"></span></a>
+  </div>
+  <div class="v-body">
+    <div class="v-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <h2 style="margin:0" x-text="VISET.__('task_types.all_types')"></h2>
+        <button @click="openForm(null)" class="v-btn v-btn-primary">+ <span x-text="VISET.__('task_types.new_task')"></span></button>
+      </div>
+      <div x-show="msg" class="v-msg" :class="msgType" x-text="msg"></div>
+      <table class="v-table">
+        <thead>
+          <tr><th x-text="VISET.__('task_types.order')"></th><th x-text="VISET.__('task_types.icon')"></th><th x-text="VISET.__('task_types.name')"></th><th x-text="VISET.__('task_types.label')"></th><th x-text="VISET.__('task_types.color')"></th><th x-text="VISET.__('task_types.status')"></th><th x-text="VISET.__('task_types.actions')"></th></tr>
+        </thead>
+        <tbody>
+          <template x-for="t in types" :key="t.id">
+            <tr>
+              <td x-text="t.sort_order"></td>
+              <td style="font-size:20px" x-text="t.icon"></td>
+              <td><code x-text="t.name"></code></td>
+              <td x-text="t.label"></td>
+              <td><span :style="'display:inline-block;width:24px;height:16px;border-radius:4px;background:' + t.color"></span></td>
+              <td><span class="v-tag" :style="t.is_active ? 'background:#d1fae5;color:#065f46' : 'background:#f3f4f6;color:#9ca3af'" x-text="t.is_active ? VISET.__('task_types.active') : VISET.__('task_types.inactive')"></span></td>
+              <td>
+                <div class="v-flex">
+                  <button @click="openForm(t)" class="v-btn v-btn-primary v-btn-sm" x-text="VISET.__('edit')"></button>
+                  <button @click="toggleActive(t)" class="v-btn" :class="t.is_active ? 'v-btn-danger' : 'v-btn-success'" style="padding:4px 10px;font-size:11px;border:0;border-radius:8px;font-weight:600;cursor:pointer" x-text="t.is_active ? VISET.__('task_types.deactivate') : VISET.__('task_types.activate')"></button>
+                </div>
+              </td>
+            </tr>
+          </template>
+          <tr x-show="!types.length"><td colspan="7" style="text-align:center;color:#9ca3af;padding:20px" x-text="VISET.__('no_data')"></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div x-cloak x-show="showModal" class="v-modal" @click.self="showModal=false">
+    <div class="v-modal-body" @click.stop>
+      <h2 style="font-size:17px;font-weight:700;color:#1f2937;margin-bottom:16px" x-text="editItem ? VISET.__('edit') + ' Task Type' : VISET.__('create') + ' Task Type'"></h2>
+      <div class="v-fgroup">
+        <label><span x-text="VISET.__('task_types.name_slug')"></span> <span style="color:#ef4444">*</span></label>
+        <input class="v-input" x-model="form.name" :placeholder="VISET.__('task_types.name_placeholder')">
+      </div>
+      <div class="v-fgroup">
+        <label><span x-text="VISET.__('task_types.label_display')"></span> <span style="color:#ef4444">*</span></label>
+        <input class="v-input" x-model="form.label" :placeholder="VISET.__('task_types.label_placeholder')">
+      </div>
+      <div class="v-fgroup">
+        <label x-text="VISET.__('task_types.icon_label')"></label>
+        <input class="v-input" x-model="form.icon" placeholder="e.g. 🏗️">
+      </div>
+      <div class="v-fgroup">
+        <label x-text="VISET.__('task_types.color_label')"></label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input class="v-input" x-model="form.color" placeholder="#3b82f6" style="flex:1">
+          <input type="color" :value="form.color" @input="form.color = $event.target.value" style="width:40px;height:36px;border:1px solid #d1d5db;border-radius:6px;cursor:pointer">
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:16px">
+        <button @click="save" class="v-btn v-btn-primary" style="flex:1;padding:12px" x-text="editItem ? VISET.__('save') : VISET.__('create')"></button>
+        <button @click="showModal=false" class="v-btn" style="flex:1;padding:12px;background:#f3f4f6;color:#374151;border:0;border-radius:8px;font-weight:600;cursor:pointer" x-text="VISET.__('cancel')"></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/lang.js"></script>
+<script src="/js/utils.js"></script>
+<script>
+document.addEventListener('alpine:init', () => {
+  Alpine.data('taskTypeManager', () => ({
+    _ready: false,
+    types: [], msg: '', msgType: '', showModal: false, editItem: null,
+    form: { name: '', label: '', icon: '📌', color: '#6366f1' },
+    init() { this._ready = VISET._permReady; if (!VISET._permReady) VISET.ready.then(() => { this._ready = true; if (!VISET.can('admin.task_types')) window.location.href = '/'; }); else if (!VISET.can('admin.task_types')) window.location.href = '/'; this.load(); },
+    async load() {
+      try { this.types = await VISET.api('task-types'); }
+      catch (e) { this.msg = 'Load failed'; this.msgType = 'error'; }
+    },
+    openForm(t) {
+      this.editItem = t;
+      this.form = t ? { ...t } : { name: '', label: '', icon: '📌', color: '#6366f1' };
+      this.showModal = true;
+    },
+    async save() {
+      if (!this.form.name || !this.form.label) { this.msg = 'Name and label required'; this.msgType = 'error'; return; }
+      try {
+        const opts = { method: 'POST', body: JSON.stringify(this.form) };
+        if (this.editItem) { opts.method = 'PUT'; opts.body = JSON.stringify(this.form); }
+        const url = this.editItem ? `task-types/${this.editItem.id}` : 'task-types';
+        const r = await VISET.apiRaw(url, opts);
+        if (r.ok) { this.msg = this.editItem ? 'Updated' : 'Created'; this.msgType = 'success'; this.showModal = false; this.load(); }
+        else { const d = await r.json(); this.msg = d.error || 'Error'; this.msgType = 'error'; }
+      } catch (e) { this.msg = 'Error'; this.msgType = 'error'; }
+    },
+    async toggleActive(t) {
+      try {
+        const r = await VISET.apiRaw(`task-types/${t.id}`, { method: 'PUT', body: JSON.stringify({ is_active: !t.is_active }) });
+        if (r.ok) { this.load(); }
+        else { const d = await r.json(); this.msg = d.error; this.msgType = 'error'; }
+      } catch (e) { this.msg = 'Error'; this.msgType = 'error'; }
+    },
+  }));
+});
+</script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.12/dist/cdn.min.js"></script>
+</body>
+</html>

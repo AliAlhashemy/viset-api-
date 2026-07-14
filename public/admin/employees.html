@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VISET — Employees</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f1f5f9;color:#1e293b}
+  .v-hdr{background:linear-gradient(135deg,#1e1b4b,#312e81);padding:28px 24px;color:#fff}
+  .v-hdr h1{font-size:22px;font-weight:700}
+  .v-hdr p{color:#a5b4fc;font-size:13px;margin-top:4px}
+  .v-nav{background:#fff;padding:0 24px;display:flex;gap:4px;border-bottom:1px solid #e2e8f0}
+  .v-nav a{padding:14px 16px;text-decoration:none;font-size:13px;font-weight:500;color:#64748b;border-bottom:2px solid transparent}
+  .v-nav a.active{color:#4f46e5;border-bottom-color:#4f46e5}
+  .v-body{padding:24px;max-width:1000px;margin:0 auto}
+  .v-card{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);padding:20px;margin-bottom:16px}
+  .v-field{display:block;width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;margin-bottom:10px}
+  .v-field:focus{outline:none;border-color:#6366f1;box-shadow:0 0 0 2px rgba(99,102,241,.12)}
+  .v-btn{display:inline-block;padding:8px 20px;border-radius:8px;font-size:13px;font-weight:600;border:0;cursor:pointer;transition:all .15s}
+  .v-btn-primary{background:#6366f1;color:#fff}
+  .v-btn-primary:hover{background:#4f46e5}
+  .v-btn-outline{background:transparent;border:1px solid #d1d5db;color:#374151}
+  .v-msg{padding:10px 14px;border-radius:8px;font-size:13px;margin-top:10px}
+  .v-msg.success{background:#d1fae5;color:#065f46}
+  .v-msg.error{background:#fee2e2;color:#991b1b}
+  .v-tbl{background:#fff;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.08);overflow-x:auto;margin-top:16px}
+  .v-tbl table{width:100%;border-collapse:collapse;min-width:700px}
+  .v-tbl th{background:#f8fafc;color:#374151;font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.05em;padding:12px 14px;border-bottom:2px solid #e5e7eb;text-align:left;white-space:nowrap}
+  .v-tbl td{padding:12px 14px;border-bottom:1px solid #f1f5f9;color:#374151;font-size:13px}
+  .v-bdg{display:inline-block;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:600}
+.v-bdg.admin{background:#eef2ff;color:#4f46e5}
+.v-bdg.manager{background:#fef3c7;color:#92400e}
+.v-bdg.supervisor{background:#d1fae5;color:#065f46}
+.v-bdg.accountant{background:#fce7f3;color:#9d174d}
+.v-bdg.salesman{background:#f3f4f6;color:#374151}
+  .v-lvl{display:inline-block;width:18px;height:18px;line-height:18px;text-align:center;border-radius:50%;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
+  .v-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .dept-card{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-bottom:16px;overflow:hidden}
+  .dept-card-header{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e5e7eb}
+  .dept-card-header h3{font-size:14px;font-weight:700;color:#1e1b4b}
+  .dept-card-mgr{font-size:11px;color:#92400e;background:#fef3c7;padding:2px 10px;border-radius:999px;font-weight:600}
+  .dept-card-body{padding:4px 0}
+  .dept-emp{display:flex;align-items:center;padding:8px 16px;border-bottom:1px solid #f8fafc;gap:8px;font-size:13px}
+  .dept-emp:last-child{border-bottom:0}
+  .dept-emp:hover{background:#f8fafc}
+  .dept-emp-avatar{width:28px;height:28px;border-radius:50%;background:#eef2ff;color:#4f46e5;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+  .dept-emp-info{flex:1;min-width:0}
+  .dept-emp-name{font-weight:600;color:#1e293b}
+  .dept-emp-title{font-size:11px;color:#6b7280}
+  .dept-emp-role{font-size:10px;font-weight:600;padding:1px 7px;border-radius:999px;flex-shrink:0}
+  .view-toggle{display:flex;gap:2px;background:#f1f5f9;border-radius:8px;padding:2px;margin-bottom:12px;width:fit-content}
+  .view-toggle button{padding:6px 14px;border:0;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:#64748b;transition:all .15s}
+  .view-toggle button.active{background:#fff;color:#1e293b;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+  [x-cloak]{display:none!important}
+  @media(max-width:640px){.v-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div x-data="employeeManager()">
+  <div class="v-hdr">
+    <h1>👤 <span x-text="VISET.__('nav.employees')">Employees</span></h1>
+    <p x-text="VISET.__('nav.employees_subtitle')">Manage employees, departments &amp; roles</p>
+  </div>
+  <div class="v-nav">
+    <a href="/admin/dashboard.html" x-show="_ready && VISET.can('admin.dashboard')" x-text="VISET.__('nav.dashboard')">Dashboard</a>
+    <a href="/admin/workflow.html" x-show="_ready && VISET.can('admin.workflow')" x-text="VISET.__('nav.workflow')">Workflow</a>
+    <a href="/admin/customers.html" x-show="_ready && VISET.can('admin.customers')" x-text="VISET.__('nav.customers')">Customers</a>
+    <a href="/admin/employees.html" class="active" x-show="_ready && VISET.can('admin.employees')" x-text="VISET.__('nav.employees')">Employees</a>
+    <a href="/admin/departments.html" x-show="_ready && VISET.can('admin.departments')" x-text="VISET.__('nav.departments')">Departments</a>
+    <a href="/admin/job-titles.html" x-show="_ready && VISET.can('admin.job_titles')" x-text="VISET.__('nav.job_titles')">Job Titles</a>
+    <a href="/manager/dashboard.html" style="color:#7c3aed;font-weight:600">👤 <span x-text="VISET.__('nav.manager_view')">Manager View</span></a>
+    <a href="/tickets.html" x-show="_ready && VISET.can('ticket.view')" x-text="VISET.__('nav.tickets')">Tickets</a>
+    <a href="/admin/reports.html" x-show="_ready && VISET.can('reports.view')" x-text="VISET.__('nav.reports')">Reports</a>
+    <a href="/" style="margin-left:auto;color:#ef4444" x-text="VISET.__('nav.logout')">← Logout</a>
+  </div>
+  <div class="v-body">
+    <div class="v-card">
+      <h3 style="font-size:15px;font-weight:600;color:#1e1b4b;margin-bottom:12px">➕ Create Employee</h3>
+      <form @submit.prevent="createEmployee">
+        <div class="v-row">
+          <input type="text" class="v-field" x-model="form.username" placeholder="Username *" required>
+          <input type="password" class="v-field" x-model="form.password" placeholder="Password *" required>
+        </div>
+        <div class="v-row">
+          <input type="text" class="v-field" x-model="form.display_name" placeholder="Full Name">
+          <input type="email" class="v-field" x-model="form.email" placeholder="Email *" required>
+        </div>
+        <div class="v-row">
+          <input type="text" class="v-field" x-model="form.employee_code" placeholder="Employee Code">
+          <input type="text" class="v-field" x-model="form.phone" placeholder="Phone">
+        </div>
+        <div class="v-row">
+          <select class="v-field" x-model="form.department_id">
+            <option value="0">— No Department —</option>
+            <template x-for="d in departments" :key="d.id">
+              <option :value="d.id" x-text="d.name"></option>
+            </template>
+          </select>
+          <select class="v-field" x-model="form.job_title_id">
+            <option value="0">— No Job Title —</option>
+            <template x-for="t in jobTitlesFlat" :key="t.id">
+              <option :value="t.id" x-text="'\u00A0'.repeat(t.level * 4) + t.name"></option>
+            </template>
+          </select>
+        </div>
+        <div class="v-row">
+          <select class="v-field" x-model="form.role">
+            <option value="salesman">👤 Salesman</option>
+            <option value="supervisor">👁️ Supervisor</option>
+            <option value="manager">👔 Manager</option>
+            <option value="accountant">💰 Accountant</option>
+            <option value="admin">🔑 Admin</option>
+          </select>
+          <div style="font-size:11px;color:#6b7280;padding-top:4px">
+            <template x-if="form.role === 'salesman'">Submit visits, view own visits</template>
+            <template x-if="form.role === 'supervisor'">Approve/flag visits, view reports</template>
+            <template x-if="form.role === 'manager'">Manage employees, customers, reports</template>
+            <template x-if="form.role === 'accountant'">View and export reports</template>
+            <template x-if="form.role === 'admin'">Full system access</template>
+          </div>
+        </div>
+        <button type="submit" class="v-btn v-btn-primary" x-text="saving ? '⏳ Creating...' : 'Create Employee'" :disabled="saving"></button>
+        <div x-show="msg" class="v-msg" :class="msgType" x-text="msg"></div>
+      </form>
+    </div>
+
+    <div class="v-card" x-show="showEditModal" style="border:2px solid #6366f1">
+      <h3 style="font-size:15px;font-weight:600;color:#1e1b4b;margin-bottom:12px">✏️ Edit Employee</h3>
+      <form @submit.prevent="saveEmployee">
+        <div class="v-row">
+          <input type="text" class="v-field" x-model="editForm.display_name" placeholder="Full Name" required>
+          <input type="email" class="v-field" x-model="editForm.email" placeholder="Email" required>
+        </div>
+        <div class="v-row">
+          <input type="text" class="v-field" x-model="editForm.employee_code" placeholder="Employee Code">
+          <input type="text" class="v-field" x-model="editForm.phone" placeholder="Phone">
+        </div>
+        <div class="v-row">
+          <select class="v-field" x-model="editForm.department_id">
+            <option value="0">— No Department —</option>
+            <template x-for="d in departments" :key="d.id">
+              <option :value="d.id" x-text="d.name"></option>
+            </template>
+          </select>
+          <select class="v-field" x-model="editForm.job_title_id">
+            <option value="0">— No Job Title —</option>
+            <template x-for="t in jobTitlesFlat" :key="t.id">
+              <option :value="t.id" x-text="'\u00A0'.repeat(t.level * 4) + t.name"></option>
+            </template>
+          </select>
+        </div>
+        <div class="v-row">
+          <select class="v-field" x-model="editForm.role">
+            <option value="salesman">👤 Salesman</option>
+            <option value="supervisor">👁️ Supervisor</option>
+            <option value="manager">👔 Manager</option>
+            <option value="accountant">💰 Accountant</option>
+            <option value="admin">🔑 Admin</option>
+          </select>
+          <input type="password" class="v-field" x-model="editForm.password" placeholder="New password (leave blank to keep)">
+        </div>
+        <div style="display:flex;gap:8px">
+          <button type="submit" class="v-btn v-btn-primary" x-text="saving ? '⏳ Saving...' : 'Save Changes'" :disabled="saving"></button>
+          <button type="button" class="v-btn v-btn-outline" @click="closeEdit">Cancel</button>
+        </div>
+        <div x-show="msg" class="v-msg" :class="msgType" x-text="msg"></div>
+      </form>
+    </div>
+
+    <!-- View Toggle -->
+    <div class="view-toggle">
+      <button @click="viewMode='list'" :class="viewMode==='list'?'active':''">📋 List View</button>
+      <button @click="viewMode='dept'" :class="viewMode==='dept'?'active':''">🏢 By Department</button>
+    </div>
+
+    <!-- Filters -->
+    <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+      <select x-model="filterDept" @change="filterEmployees" class="v-field" style="width:auto;min-width:150px;margin:0">
+        <option value="0">All Departments</option>
+        <template x-for="d in departments" :key="d.id">
+          <option :value="d.id" x-text="d.name"></option>
+        </template>
+      </select>
+      <select x-model="filterRole" @change="filterEmployees" class="v-field" style="width:auto;min-width:120px;margin:0">
+        <option value="">All Roles</option>
+        <option value="salesman">👤 Salesman</option>
+        <option value="supervisor">👁️ Supervisor</option>
+        <option value="manager">👔 Manager</option>
+        <option value="accountant">💰 Accountant</option>
+        <option value="admin">🔑 Admin</option>
+      </select>
+      <input type="text" x-model="filterSearch" @input="filterEmployees" class="v-field" placeholder="Search..." style="width:auto;min-width:200px;margin:0;flex:1">
+    </div>
+
+    <!-- Department Cards View -->
+    <div x-show="viewMode==='dept'">
+      <template x-for="d in deptGroups" :key="d.id">
+        <div class="dept-card">
+          <div class="dept-card-header">
+            <h3>🏢 <span x-text="d.name"></span> <span style="font-weight:400;font-size:12px;color:#6b7280" x-text="'(' + d.employees.length + ' emp)'"></span></h3>
+            <template x-if="d.manager_name">
+              <span class="dept-card-mgr">👔 Manager: <span x-text="d.manager_name"></span></span>
+            </template>
+          </div>
+          <div class="dept-card-body">
+            <template x-for="e in d.employees" :key="e.id">
+              <div class="dept-emp">
+                <div class="dept-emp-avatar" x-text="(e.display_name || e.username).charAt(0).toUpperCase()"></div>
+                <div class="dept-emp-info">
+                  <div class="dept-emp-name" x-text="e.display_name || e.username"></div>
+                  <div class="dept-emp-title" x-text="e.job_title_name || e.role"></div>
+                </div>
+                <span class="v-bdg" :class="e.role" x-text="e.role" style="font-size:10px;padding:1px 7px"></span>
+                <button @click="openEdit(e)" style="background:none;border:0;color:#6366f1;cursor:pointer;font-size:13px">✏️</button>
+              </div>
+            </template>
+            <div x-show="!d.employees.length" style="padding:24px;text-align:center;color:#9ca3af;font-size:13px">No employees in this department</div>
+          </div>
+        </div>
+      </template>
+      <div x-show="!deptGroups.length" style="padding:30px;text-align:center;color:#9ca3af">No departments found</div>
+    </div>
+
+    <!-- Table List View -->
+    <div class="v-tbl" x-show="viewMode==='list'">
+      <table>
+        <thead><tr><th>Name</th><th>Username</th><th>Code</th><th>Department</th><th>Job Title</th><th>Role</th><th>Visits</th><th></th></tr></thead>
+        <tbody>
+          <template x-for="u in filtered" :key="u.id">
+            <tr>
+              <td><strong x-text="u.display_name || u.username"></strong></td>
+              <td x-text="u.username" style="color:#6b7280;font-size:12px"></td>
+              <td x-text="u.employee_code || '—'" style="font-size:12px"></td>
+              <td><span style="font-size:12px;color:#6366f1;font-weight:500" x-text="u.department_name || '—'"></span></td>
+              <td>
+                <template x-if="u.job_title_name">
+                  <span style="display:flex;align-items:center;gap:4px">
+                    <span class="v-lvl" :style="'background:' + jtLevelColor(u.job_title_id)" x-text="(jtLevelMap[u.job_title_id] ?? 0) + 1"></span>
+                    <span style="font-size:12px" x-text="u.job_title_name"></span>
+                  </span>
+                </template>
+                <span x-show="!u.job_title_name" style="font-size:12px;color:#9ca3af">—</span>
+              </td>
+              <td><span class="v-bdg" :class="u.role" x-text="u.role"></span></td>
+              <td x-text="u.visit_count"></td>
+              <td><button @click="openEdit(u)" style="background:none;border:0;color:#6366f1;cursor:pointer;font-weight:600">✏️</button></td>
+            </tr>
+          </template>
+          <tr x-show="!filtered.length"><td colspan="8" style="text-align:center;color:#9ca3af">No employees found</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<script src="/js/lang.js"></script>
+<script src="/js/utils.js"></script>
+<script src="/js/manager.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.12/dist/cdn.min.js"></script>
+</body>
+</html>

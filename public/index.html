@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>VISET — Login</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:linear-gradient(135deg,#1e1b4b,#312e81); min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
+  .l-card { background:#fff; border-radius:20px; padding:48px 32px; max-width:360px; width:100%; box-shadow:0 20px 60px rgba(0,0,0,.2); text-align:center; }
+  .l-logo { font-size:48px; margin-bottom:12px; }
+  .l-title { font-size:22px; font-weight:700; color:#1e1b4b; }
+  .l-sub { color:#6b7280; font-size:14px; margin-bottom:28px; }
+  .l-field { width:100%; padding:14px 16px; border:1px solid #d1d5db; border-radius:10px; font-size:15px; margin-bottom:16px; }
+  .l-field:focus { outline:none; border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.12); }
+  .l-btn { width:100%; padding:16px; border-radius:10px; border:0; font-size:16px; font-weight:700; color:#fff; cursor:pointer; background:linear-gradient(135deg,#6366f1,#4f46e5); transition:all .15s; }
+  .l-btn:hover { box-shadow:0 4px 12px rgba(99,102,241,.3); }
+  .l-btn:disabled { opacity:.6; cursor:not-allowed; }
+  .l-error { color:#dc2626; font-size:13px; margin-top:12px; min-height:20px; }
+</style>
+<link rel="stylesheet" href="/css/rtl.css">
+</head>
+<body>
+<div x-data="loginApp()" class="l-card" style="position:relative">
+  <button @click="VISET.toggleLang()" style="background:none;border:0;color:#a5b4fc;font-size:12px;cursor:pointer;position:absolute;top:16px;right:24px" x-text="VISET.locale === 'en' ? 'العربية' : 'English'"></button>
+  <div class="l-logo">📍</div>
+  <h1 class="l-title" x-text="VISET.__('login.title')"></h1>
+  <p class="l-sub" x-text="VISET.__('login.subtitle')"></p>
+  <input type="text" id="username" class="l-field" :placeholder="VISET.__('login.username')" autocomplete="username" value="">
+  <input type="password" id="password" class="l-field" :placeholder="VISET.__('login.password')" autocomplete="current-password" value="">
+  <button id="loginBtn" class="l-btn" @click="doLogin" :disabled="busy" x-text="btnText"></button>
+  <p id="loginError" class="l-error" x-text="errorText"></p>
+</div>
+<script src="/js/lang.js"></script>
+<script src="/js/utils.js"></script>
+<script>
+function loginApp() {
+  return {
+    busy: false,
+    btnText: VISET.__('login.button'),
+    errorText: '',
+    init() {
+      document.getElementById('password').addEventListener('keydown', e => { if (e.key === 'Enter') this.doLogin(); });
+      document.getElementById('username').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('password').focus(); });
+    },
+    async doLogin() {
+      const u = document.getElementById('username').value;
+      const p = document.getElementById('password').value;
+      this.busy = true; this.btnText = 'Logging in...'; this.errorText = '';
+      try {
+        const data = await VISET.login(u, p);
+        const role = data.user.role;
+        if (role === 'manager') window.location.href = '/manager/dashboard.html';
+        else if (['admin', 'supervisor', 'accountant'].includes(role)) window.location.href = '/admin/dashboard.html';
+        else window.location.href = '/dashboard.html';
+      } catch (e) {
+        this.errorText = e.message || 'Login failed';
+        this.busy = false; this.btnText = VISET.__('login.button');
+      }
+    }
+  };
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.12/dist/cdn.min.js"></script>
+</body>
+</html>

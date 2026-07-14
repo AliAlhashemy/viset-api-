@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VISET — Customers</title>
+<link rel="stylesheet" href="/css/rtl.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f1f5f9;color:#1e293b}
+  .v-hdr{background:linear-gradient(135deg,#1e1b4b,#312e81);padding:28px 24px;color:#fff;position:relative}
+  .v-hdr h1{font-size:22px;font-weight:700}
+  .v-hdr p{color:#a5b4fc;font-size:13px;margin-top:4px}
+  .v-nav{background:#fff;padding:0 24px;display:flex;gap:4px;border-bottom:1px solid #e2e8f0}
+  .v-nav a{padding:14px 16px;text-decoration:none;font-size:13px;font-weight:500;color:#64748b;border-bottom:2px solid transparent;transition:all .15s}
+  .v-nav a.active{color:#4f46e5;border-bottom-color:#4f46e5}
+  .v-body{padding:24px;max-width:1200px;margin:0 auto}
+  .v-card{background:#fff;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.08);padding:20px;margin-bottom:16px}
+  .v-tbl{background:#fff;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.08);overflow-x:auto}
+  .v-tbl table{width:100%;border-collapse:collapse;min-width:800px}
+  .v-tbl th{background:#f8fafc;color:#374151;font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.05em;padding:12px 10px;border-bottom:2px solid #e5e7eb;text-align:left;white-space:nowrap}
+  .v-tbl td{padding:12px 10px;border-bottom:1px solid #f1f5f9;color:#374151;font-size:13px}
+  .v-btn{display:inline-block;padding:6px 16px;border-radius:8px;font-size:13px;font-weight:500;text-decoration:none;cursor:pointer;border:0;transition:all .15s}
+  .v-btn-primary{background:#6366f1;color:#fff}
+  .v-btn-outline{background:transparent;border:1px solid #d1d5db;color:#374151}
+  .v-imp{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}
+  .v-bdg{display:inline-block;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:600}
+  .v-bdg.new{background:#d1fae5;color:#065f46}
+  .v-bdg.old{background:#fef3c7;color:#92400e}
+  [x-cloak]{display:none!important}
+</style>
+</head>
+<body>
+<div x-data="customerManager()">
+  <div class="v-hdr">
+    <h1>👥 <span x-text="VISET.__('nav.customers')"></span></h1>
+    <p x-text="VISET.__('customers.manage')"></p>
+    <button @click="VISET.toggleLang()" x-text="VISET.locale === 'en' ? 'العربية' : 'English'" style="background:none;border:0;color:#a5b4fc;font-size:12px;cursor:pointer;position:absolute;top:16px;right:24px"></button>
+  </div>
+  <div class="v-nav">
+    <a href="/admin/dashboard.html" x-show="_ready && VISET.can('admin.dashboard')"><span x-text="VISET.__('nav.dashboard')"></span></a>
+    <a href="/admin/workflow.html" x-show="_ready && VISET.can('admin.workflow')"><span x-text="VISET.__('nav.workflow')"></span></a>
+    <a href="/admin/customers.html" class="active" x-show="_ready && VISET.can('admin.customers')"><span x-text="VISET.__('nav.customers')"></span></a>
+    <a href="/admin/employees.html" x-show="_ready && VISET.can('admin.employees')"><span x-text="VISET.__('nav.employees')"></span></a>
+    <a href="/admin/departments.html" x-show="_ready && VISET.can('admin.departments')"><span x-text="VISET.__('nav.departments')"></span></a>
+    <a href="/admin/job-titles.html" x-show="_ready && VISET.can('admin.job_titles')"><span x-text="VISET.__('nav.job_titles')"></span></a>
+    <a href="/manager/dashboard.html" style="color:#7c3aed;font-weight:600">👤 <span x-text="VISET.__('nav.manager_view')"></span></a>
+    <a href="/tickets.html" x-show="_ready && VISET.can('ticket.view')"><span x-text="VISET.__('nav.tickets')"></span></a>
+    <a href="/admin/reports.html" x-show="_ready && VISET.can('reports.view')"><span x-text="VISET.__('nav.reports')"></span></a>
+    <a href="/" style="margin-left:auto;color:#ef4444">← <span x-text="VISET.__('nav.logout')"></span></a>
+  </div>
+  <div class="v-body">
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+      <a href="/admin/customers.html?add=1" class="v-btn v-btn-primary">➕ <span x-text="VISET.__('customers.add_new')"></span></a>
+      <a href="javascript:void(0)" @click="downloadTemplate" class="v-btn v-btn-outline">📥 <span x-text="VISET.__('customers.download_template')"></span></a>
+    </div>
+    <div class="v-card">
+      <strong style="color:#374151;font-size:14px">📂 <span x-text="VISET.__('customers.bulk_import')"></span></strong>
+      <form @submit.prevent="previewImport" class="v-imp">
+        <input type="file" accept=".csv" @change="file = $event.target.files[0]; previewRows = []; importDone = ''" style="font-size:13px">
+        <button type="submit" class="v-btn v-btn-primary" style="padding:4px 12px;font-size:12px"><span x-text="loadingPreview ? VISET.__('loading') : VISET.__('customers.preview')"></span></button>
+      </form>
+
+      <div x-show="previewRows.length" style="margin-top:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px">
+          <span style="font-size:13px;color:#374151">
+            <strong x-text="previewRows.filter(r => r.selected).length"></strong> / <span x-text="previewRows.length"></span> <span x-text="VISET.__('customers.selected')"></span>
+            <span x-show="previewRows.filter(r => r.duplicate).length" style="color:#dc2626;margin-left:8px">
+              ⚠ <span x-text="previewRows.filter(r => r.duplicate).length"></span> <span x-text="VISET.__('customers.duplicates')"></span>
+            </span>
+          </span>
+          <div style="display:flex;gap:8px">
+            <button @click="selectAll(true)" class="v-btn v-btn-outline" style="padding:4px 10px;font-size:11px" x-text="VISET.__('customers.select_all')"></button>
+            <button @click="selectAll(false)" class="v-btn v-btn-outline" style="padding:4px 10px;font-size:11px" x-text="VISET.__('customers.deselect_all')"></button>
+            <button @click="confirmImport" class="v-btn v-btn-primary" style="padding:4px 12px;font-size:12px"><span x-text="importing ? VISET.__('loading') : VISET.__('customers.import_selected')"></span></button>
+          </div>
+        </div>
+        <div class="v-tbl">
+          <table style="min-width:auto">
+            <thead><tr><th style="width:40px"></th><th>CustomerAccount</th><th>اسم المورد</th><th>Buyer Name</th><th style="width:40px"></th></tr></thead>
+            <tbody>
+              <template x-for="(r, i) in previewRows" :key="i">
+                <tr :style="r.duplicate ? 'background:#fef2f2' : ''">
+                  <td><input type="checkbox" x-model="r.selected" style="width:16px;height:16px;cursor:pointer"></td>
+                  <td x-text="r.account" style="font-size:12px"></td>
+                  <td><strong x-text="r.name" style="font-size:13px"></strong></td>
+                  <td x-text="r.buyer" style="font-size:12px"></td>
+                  <td><button @click="removeRow(i)" style="background:none;border:0;color:#ef4444;cursor:pointer;font-size:16px" :title="VISET.__('delete')">✕</button></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div x-show="importDone" style="margin-top:8px;padding:10px 14px;border-radius:8px;font-size:13px" :style="importDone.startsWith('Error') ? 'background:#fee2e2;color:#991b1b' : 'background:#d1fae5;color:#065f46'" x-text="importDone"></div>
+    </div>
+    <div class="v-tbl">
+      <table>
+        <thead><tr><th x-text="VISET.__('customers.account')"></th><th x-text="VISET.__('customers.name')"></th><th x-text="VISET.__('customers.buyer')"></th><th x-text="VISET.__('customers.email')"></th><th x-text="VISET.__('customers.building')"></th><th x-text="VISET.__('customers.street')"></th><th x-text="VISET.__('customers.city')"></th><th x-text="VISET.__('customers.country')"></th><th x-text="VISET.__('customers.phone')"></th><th x-text="VISET.__('customers.type')"></th></tr></thead>
+        <tbody>
+          <template x-for="c in customers" :key="c.id">
+            <tr>
+              <td x-text="c.account"></td>
+              <td><strong x-text="c.name"></strong></td>
+              <td x-text="c.buyer"></td>
+              <td x-text="c.email"></td>
+              <td x-text="c.building"></td>
+              <td x-text="c.street"></td>
+              <td x-text="c.city"></td>
+              <td x-text="c.country"></td>
+              <td x-text="c.phone"></td>
+              <td><span class="v-bdg" :class="c.type" x-text="c.type === 'old' ? VISET.__('customers.old') : VISET.__('customers.new')"></span></td>
+            </tr>
+          </template>
+          <tr x-show="!customers.length"><td colspan="10" style="text-align:center;color:#9ca3af" x-text="VISET.__('no_data')"></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<script src="/js/lang.js"></script>
+<script src="/js/utils.js"></script>
+<script src="/js/manager.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.12/dist/cdn.min.js"></script>
+</body>
+</html>

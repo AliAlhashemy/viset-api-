@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>VISET — Manager Dashboard</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f1f5f9;color:#1e293b;overflow-x:hidden}
+  .v-hdr{background:linear-gradient(135deg,#1e1b4b,#312e81);padding:28px 24px;color:#fff;position:relative}
+  .v-hdr h1{font-size:22px;font-weight:700}
+  .v-hdr p{color:#a5b4fc;font-size:13px;margin-top:4px}
+  .v-nav{background:#fff;padding:0 24px;display:flex;gap:4px;border-bottom:1px solid #e2e8f0;overflow-x:auto}
+  .v-nav a{padding:14px 16px;text-decoration:none;font-size:13px;font-weight:500;color:#64748b;border-bottom:2px solid transparent;white-space:nowrap}
+  .v-nav a.active{color:#4f46e5;border-bottom-color:#4f46e5}
+  .v-body{padding:20px 16px;max-width:1400px;margin:0 auto}
+  .v-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px}
+  .v-card{background:#fff;border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .v-card .num{font-size:24px;font-weight:700;color:#1e1b4b}
+  .v-card .lbl{font-size:12px;color:#64748b;margin-top:2px}
+  .v-card .ico{font-size:20px;margin-bottom:4px}
+  .wf-board{display:flex;gap:12px;overflow-x:auto;padding-bottom:20px;min-height:60vh;align-items:flex-start}
+  .wf-col{flex:0 0 260px;min-width:220px;background:#f1f5f9;border-radius:12px;padding:12px;display:flex;flex-direction:column;max-height:calc(100vh - 260px)}
+  .wf-col-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid}
+  .wf-col-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+  .wf-col-count{background:#e2e8f0;border-radius:999px;padding:2px 10px;font-size:11px;font-weight:700;color:#475569}
+  .wf-cards{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;min-height:60px}
+  .wf-card{background:#fff;border-radius:10px;padding:0;box-shadow:0 1px 3px rgba(0,0,0,.08);cursor:pointer;transition:all .15s;border-left:4px solid;user-select:none;overflow:hidden}
+  .wf-card:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.12)}
+  .wf-card-head{display:flex;justify-content:space-between;align-items:center;padding:10px 12px 6px}
+  .wf-card-customer{font-size:13px;font-weight:700;color:#1e1b4b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+  .wf-card-id{font-size:10px;color:#9ca3af;background:#f3f4f6;padding:1px 6px;border-radius:4px;font-weight:600;flex-shrink:0;margin-left:6px}
+  .wf-card-date{font-size:10px;color:#9ca3af;flex-shrink:0;margin-left:6px}
+  .wf-card-body{display:grid;grid-template-columns:1fr 1fr 1fr;margin:4px 12px 6px;border-top:1px solid #e5e7eb;border-bottom:1px solid #e5e7eb}
+  .wf-card-col{padding:6px 8px;position:relative;text-align:center;min-width:0}
+  .wf-card-col+.wf-card-col{border-left:1px solid #e5e7eb}
+  .wf-card-col-icon{font-size:14px}
+  .wf-card-col-label{font-size:9px;color:#9ca3af;text-transform:uppercase;letter-spacing:.02em;margin-bottom:1px}
+  .wf-card-col-value{font-size:11px;font-weight:600;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .wf-card-task{display:inline-block;padding:1px 8px;border-radius:999px;font-size:10px;font-weight:600;background:#f3f4f6;color:#374151}
+  .wf-card-foot{padding:2px 12px 8px}
+  .wf-card-purpose{font-size:11px;color:#6b7280;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:2px}
+  .wf-card-subs{display:flex;flex-direction:column;gap:3px;margin-top:4px}
+  .wf-card-sub{display:flex;align-items:center;gap:4px;padding:3px 6px;background:#f8fafc;border-radius:4px;font-size:10px;border-left:2px solid #cbd5e1;cursor:pointer;transition:background .1s}
+  .wf-card-sub:hover{background:#eef2ff}
+  .wf-card-sub-icon{flex-shrink:0;font-size:12px}
+  .wf-card-sub-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;font-weight:500;color:#334155}
+  .wf-card-sub-status{font-size:9px;padding:1px 5px;border-radius:999px;font-weight:600;flex-shrink:0}
+  .wf-card-subs-toggle{font-size:10px;color:#6366f1;font-weight:600;cursor:pointer;padding:2px 0;display:flex;align-items:center;gap:4px;background:none;border:0}
+  .wf-card-subs-toggle:hover{color:#4f46e5}
+  .wf-empty{text-align:center;padding:20px 10px;color:#9ca3af;font-size:12px}
+  .filter-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px;padding:12px 16px;background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .filter-bar select,.filter-bar input{padding:6px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;background:#fff}
+  .filter-bar select{min-width:160px}
+  .filter-bar input{flex:1;min-width:160px;max-width:280px}
+  .filter-bar label{font-size:12px;font-weight:600;color:#374151;white-space:nowrap}
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px}
+  .modal-content{background:#fff;border-radius:16px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+  .modal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+  .modal-hdr h2{font-size:18px;font-weight:700;color:#1e1b4b}
+  .modal-close{background:none;border:0;font-size:22px;color:#9ca3af;cursor:pointer;padding:4px}
+  .modal-section{margin-bottom:16px}
+  .modal-section-title{font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+  .modal-info{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px}
+  .modal-info div{padding:6px 0}
+  .modal-info .lbl{color:#6b7280;font-size:11px}
+  .modal-info .val{font-weight:500;color:#1e293b}
+  .wf-action-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;border:0;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;margin-right:6px;margin-bottom:6px}
+  .wf-log{font-size:12px}
+  .wf-log-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #f1f5f9}
+  .wf-log-dot{width:10px;height:10px;border-radius:50%;margin-top:4px;flex-shrink:0}
+  .wf-log-content{flex:1}
+  .wf-log-action{font-weight:600;color:#1e293b}
+  .wf-log-user{color:#6366f1;font-size:11px}
+  .wf-log-note{color:#6b7280;font-size:11px;margin-top:2px;background:#f9fafb;padding:4px 8px;border-radius:4px}
+  .wf-log-date{color:#9ca3af;font-size:10px;margin-top:2px}
+  .wf-transition-note{width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;margin-bottom:8px;resize:vertical;min-height:40px}
+  .wf-transition-note:focus{outline:none;border-color:#6366f1;box-shadow:0 0 0 2px rgba(99,102,241,.12)}
+  .wf-actions{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+  [x-cloak]{display:none!important}
+  @media(max-width:768px){.wf-board{flex-direction:column;overflow-x:visible}.wf-col{flex:1;min-width:auto;max-height:none}.modal-content{margin:16px;border-radius:12px}.modal-info{grid-template-columns:1fr}}
+</style>
+<link rel="stylesheet" href="/css/rtl.css">
+</head>
+<body>
+<div x-data="workflowBoard()">
+  <div class="v-hdr">
+    <h1>👤 <span x-text="VISET.user?.display_name || VISET.__('mgr.title')"></span></h1>
+    <p>Follow up on salesman tasks &amp; visit activity</p>
+    <button @click="VISET.toggleLang()" x-text="VISET.locale === 'en' ? 'العربية' : 'English'" style="background:none;border:0;color:#a5b4fc;font-size:12px;cursor:pointer;position:absolute;top:16px;right:24px"></button>
+  </div>
+  <div class="v-nav">
+    <a href="/manager/dashboard.html" class="active" x-show="_ready && VISET.can('admin.dashboard')" x-text="VISET.__('nav.dashboard')">Dashboard</a>
+    <a href="/manager/workflow.html" x-show="_ready && VISET.can('admin.workflow')" x-text="VISET.__('nav.workflow')">Workflow</a>
+    <a href="/tickets.html" x-show="_ready && VISET.can('ticket.view')" x-text="VISET.__('nav.tickets')">Tickets</a>
+    <a href="/manager/reports.html" x-show="_ready && VISET.can('reports.view')" x-text="VISET.__('nav.reports')">Reports</a>
+    <a href="/" style="margin-left:auto;color:#ef4444">← <span x-text="VISET.__('nav.logout')"></span></a>
+  </div>
+  <div class="v-body">
+    <!-- Summary Cards -->
+    <div id="mgr-summary" x-cloak class="v-grid">
+      <div class="v-card"><div class="ico">⏳</div><div class="num" x-text="board.counts?.pending || 0"></div><div class="lbl" x-text="VISET.__('status.pending')">Pending</div></div>
+      <div class="v-card"><div class="ico">🔍</div><div class="num" x-text="board.counts?.review || 0"></div><div class="lbl" x-text="VISET.__('status.review')">In Review</div></div>
+      <div class="v-card"><div class="ico">✅</div><div class="num" x-text="board.counts?.approved || 0"></div><div class="lbl" x-text="VISET.__('status.approved')">Approved</div></div>
+      <div class="v-card"><div class="ico">🚩</div><div class="num" x-text="board.counts?.flagged || 0"></div><div class="lbl" x-text="VISET.__('status.flagged')">Flagged</div></div>
+      <div class="v-card"><div class="ico">🎯</div><div class="num" x-text="board.counts?.completed || 0"></div><div class="lbl" x-text="VISET.__('status.completed')">Completed</div></div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-bar" x-cloak>
+      <label>👤 Salesman:</label>
+      <select x-model="selectedSalesman" @change="loadBoard">
+        <option value="" x-text="VISET.__('mgr.select_salesman')">All Salesmen</option>
+        <template x-for="sm in salesmen" :key="sm.id">
+          <option :value="sm.id" x-text="sm.display_name || sm.username"></option>
+        </template>
+      </select>
+      <label>🎯 Task:</label>
+      <select x-model="selectedTask" @change="loadBoard">
+        <option value="">All Tasks</option>
+        <template x-for="t in taskTypes" :key="t">
+          <option :value="t" x-text="t"></option>
+        </template>
+      </select>
+      <input x-model="searchQuery" @input.debounce="loadBoard" type="text" :placeholder="VISET.__('mgr.search_customer')">
+      <label x-text="VISET.__('mgr.period')">📅 Period:</label>
+      <div style="display:flex;gap:4px;flex-wrap:wrap">
+        <button @click="setDateFilter('today')" style="padding:5px 10px;border-radius:6px;border:0;font-size:11px;font-weight:600;cursor:pointer" :style="dateMode==='today'?'background:#6366f1;color:#fff':'background:#f3f4f6;color:#374151'" x-text="VISET.__('mgr.today')">Today</button>
+        <button @click="setDateFilter('month')" style="padding:5px 10px;border-radius:6px;border:0;font-size:11px;font-weight:600;cursor:pointer" :style="dateMode==='month'?'background:#6366f1;color:#fff':'background:#f3f4f6;color:#374151'" x-text="VISET.__('mgr.this_month')">This Month</button>
+        <button @click="setDateFilter('all')" style="padding:5px 10px;border-radius:6px;border:0;font-size:11px;font-weight:600;cursor:pointer" :style="dateMode==='all'?'background:#6366f1;color:#fff':'background:#f3f4f6;color:#374151'" x-text="VISET.__('mgr.all_time')">All Time</button>
+      </div>
+      <label x-text="VISET.__('mgr.from')">From:</label>
+      <input type="date" x-model="dateFrom" @change="loadBoard" style="padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;max-width:150px">
+      <label x-text="VISET.__('mgr.to')">To:</label>
+      <input type="date" x-model="dateTo" @change="loadBoard" style="padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;max-width:150px">
+      <button @click="clearFilter" x-show="selectedTask || searchQuery || selectedSalesman || dateMode !== 'all'" style="padding:6px 14px;border:1px solid #d1d5db;border-radius:8px;font-size:12px;background:#fff;color:#ef4444;cursor:pointer;font-weight:600" x-text="VISET.__('mgr.clear')">✕ Clear</button>
+    </div>
+
+    <!-- Board -->
+    <div class="wf-board" x-cloak>
+      <template x-for="s in stateInfo" :key="s.key">
+        <div class="wf-col">
+          <div class="wf-col-hdr" :style="'border-color:' + s.color">
+            <span class="wf-col-title" :style="'color:' + s.color" x-text="VISET.__('status.' + s.key) || s.label"></span>
+            <span class="wf-col-count" x-text="board.counts?.[s.key] || 0"></span>
+          </div>
+          <div class="wf-cards">
+            <template x-for="v in (board.columns?.[s.key] || [])" :key="v.id">
+              <div class="wf-card" :style="'border-left-color:' + s.color" @click="openDetail(v)">
+                <div class="wf-card-head">
+                  <div class="wf-card-customer" x-text="v.customer_name"></div>
+                  <span class="wf-card-id">#<span x-text="v.id"></span></span>
+                  <span class="wf-card-date" x-text="new Date(v.created_at).toLocaleDateString()"></span>
+                </div>
+                <div class="wf-card-body">
+                  <div class="wf-card-col">
+                    <div class="wf-card-col-label">👤 <span x-text="VISET.__('mgr.salesman')"></span></div>
+                    <div class="wf-card-col-value" x-text="v.author_name"></div>
+                  </div>
+                  <div class="wf-card-col">
+                    <div class="wf-card-col-label">🎯 Task</div>
+                    <div class="wf-card-col-value" x-text="v.visit_task || 'visit'"></div>
+                  </div>
+                  <div class="wf-card-col">
+                    <div class="wf-card-col-label">⏳ Status</div>
+                    <div class="wf-card-col-value" style="font-size:10px" :style="'color:' + (getStateInfo(v.status)?.color || '#6b7280')" x-text="getStateInfo(v.status)?.label || v.status"></div>
+                  </div>
+                </div>
+                <div class="wf-card-foot">
+                  <div x-show="v.visit_purpose" class="wf-card-purpose" x-text="v.visit_purpose"></div>
+                  <template x-if="v.sub_tasks && v.sub_tasks.length">
+                    <div>
+                      <button class="wf-card-subs-toggle" @click.stop="toggleSubs(v.id)">
+                        <span x-text="v._showSubs ? '▼' : '▶'"></span>
+                        🌿 <span x-text="v.sub_tasks.length"></span> branch <span x-text="v.sub_tasks.length === 1 ? 'task' : 'tasks'"></span>
+                      </button>
+                      <div class="wf-card-subs" x-show="v._showSubs" x-cloak>
+                        <template x-for="st in v.sub_tasks" :key="st.id">
+                          <div class="wf-card-sub" @click.stop="openDetail(st)">
+                            <span class="wf-card-sub-icon" x-text="st.visit_task === 'followup' ? '📞' : st.visit_task === 'demo' ? '📱' : st.visit_task === 'payment' ? '💰' : st.visit_task === 'callback' ? '🔙' : st.visit_task === 'opening' ? '📋' : st.visit_task === 'order' ? '📋' : '🛒'"></span>
+                            <span class="wf-card-sub-name" x-text="st.customer_name"></span>
+                            <span class="wf-card-sub-status" :style="'background:' + (getStateInfo(st.status)?.color + '20' || '#f3f4f6') + ';color:' + (getStateInfo(st.status)?.color || '#6b7280')" x-text="st.status"></span>
+                          </div>
+                        </template>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </template>
+            <div class="wf-empty" x-show="!(board.columns?.[s.key] || []).length">No visits</div>
+          </div>
+        </div>
+      </template>
+    </div>
+
+    <!-- Detail Modal -->
+    <div x-show="showModal" class="modal-overlay" @click.away="showModal = false" style="display:flex" :style="showModal ? '' : 'display:none'">
+      <div class="modal-content" @click.stop>
+        <div class="modal-hdr">
+          <h2 x-text="selected?.customer_name || 'Visit'"></h2>
+          <button @click="showModal = false" class="modal-close">✕</button>
+        </div>
+
+        <div class="modal-section">
+          <div class="modal-info">
+            <div><div class="lbl">Salesman</div><div class="val" x-text="selected?.author_name"></div></div>
+            <div><div class="lbl" x-text="VISET.__('tickets.status')">Status</div><div class="val" :style="'color:' + (getStateInfo(selected?.status)?.color || '#6b7280')" x-text="VISET.__('status.' + (selected?.status || '')) || getStateInfo(selected?.status)?.label || selected?.status"></div></div>
+            <div><div class="lbl">Task</div><div class="val" x-text="selected?.visit_task || VISET.__('sd.visit')"></div></div>
+            <div><div class="lbl" x-text="VISET.__('admin.department')">Department</div><div class="val" x-text="selected?.department_name || VISET.__('sd.no_location')"></div></div>
+            <div x-show="selected?.customer_id"><div class="lbl">Customer ID</div><div class="val" x-text="selected?.customer_id"></div></div>
+            <div><div class="lbl" x-text="VISET.__('sd.date')">Date</div><div class="val" x-text="new Date(selected?.created_at).toLocaleDateString()"></div></div>
+          </div>
+          <div x-show="selected?.visit_purpose" style="margin-top:8px;padding:8px 10px;background:#fef3c7;border-radius:6px;font-size:12px;color:#92400e"><strong x-text="VISET.__('sd.purpose') + ':'">Purpose:</strong> <span x-text="selected?.visit_purpose"></span></div>
+          <div x-show="selected?.visit_note" style="margin-top:4px;padding:8px 10px;background:#f3f4f6;border-radius:6px;font-size:12px;color:#374151"><strong x-text="VISET.__('sd.note') + ':'">Note:</strong> <span x-text="selected?.visit_note"></span></div>
+          <div x-show="selected?.photo_url" style="margin-top:6px">
+            <img :src="selected.photo_url" style="max-width:100%;border-radius:8px;max-height:200px">
+          </div>
+          <div x-show="selected?.latitude" style="margin-top:8px">
+            <div class="modal-section-title" x-text="'📍 ' + VISET.__('sd.location')">📍 Location</div>
+            <div style="font-size:11px;color:#6b7280;margin-bottom:4px" x-text="selected?.latitude + ', ' + selected?.longitude"></div>
+            <iframe :src="'https://www.openstreetmap.org/export/embed.html?bbox=' + (selected.longitude - 0.01) + ',' + (selected.latitude - 0.01) + ',' + (selected.longitude + 0.01) + ',' + (selected.latitude + 0.01) + '&layer=mapnik&marker=' + selected.latitude + ',' + selected.longitude" style="width:100%;height:150px;border-radius:8px;border:1px solid #e5e7eb" loading="lazy" title="Map"></iframe>
+          </div>
+          <div x-show="!selected?.latitude && selected?.address" style="margin-top:6px;padding:8px 10px;background:#f3f4f6;border-radius:6px;font-size:12px;color:#374151"><strong x-text="VISET.__('sd.address') + ':'">Address:</strong> <span x-text="selected?.address"></span></div>
+        </div>
+
+        <div class="modal-section" x-show="selected">
+          <div class="modal-section-title">🎯 <span x-text="VISET.__('mgr.success') || 'Visit Outcome'"></span></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="wf-action-btn" :style="'background:' + (selected?.is_success === 1 ? '#05966920' : '#f3f4f6') + ';color:' + (selected?.is_success === 1 ? '#059669' : '#6b7280')" @click="markSuccess(1)">✅ <span x-text="VISET.__('mgr.success') || 'Success'"></span></button>
+            <button class="wf-action-btn" :style="'background:' + (selected?.is_success === 0 ? '#dc262620' : '#f3f4f6') + ';color:' + (selected?.is_success === 0 ? '#dc2626' : '#6b7280')" @click="markSuccess(0)">❌ <span x-text="VISET.__('mgr.not_success') || 'Not Success'"></span></button>
+            <button class="wf-action-btn" style="background:#f3f4f6;color:#6b7280" @click="markSuccess(null)">↺ <span x-text="VISET.__('mgr.clear') || 'Clear'"></span></button>
+          </div>
+          <div x-show="selected?.is_success !== null" style="margin-top:6px;padding:6px 10px;border-radius:6px;font-size:12px;font-weight:600" :style="selected?.is_success === 1 ? 'background:#ecfdf5;color:#065f46' : selected?.is_success === 0 ? 'background:#fef2f2;color:#991b1b' : ''" x-text="selected?.is_success === 1 ? (VISET.__('mgr.success') || 'Success') + ' ✓' : selected?.is_success === 0 ? (VISET.__('mgr.not_success') || 'Not Success') + ' ✗' : ''"></div>
+        </div>
+
+        <div class="modal-section" x-show="allowedTransitions.length">
+          <div class="modal-section-title" x-text="'⚡ ' + VISET.__('tickets.move_to')">⚡ Move to</div>
+          <div class="wf-actions">
+            <template x-for="t in allowedTransitions" :key="t">
+              <button class="wf-action-btn" :style="'background:' + (getStateInfo(t)?.color || '#6366f1') + '20;color:' + (getStateInfo(t)?.color || '#6366f1')" @click="transitionTo(t)">
+                <span x-text="VISET.__('status.' + t) || getStateInfo(t)?.label || t"></span>
+                <span style="font-size:10px">→</span>
+              </button>
+            </template>
+          </div>
+          <textarea class="wf-transition-note" x-model="transitionNote" placeholder="Add a note..."></textarea>
+          <div class="wf-error" x-show="transitionError" x-text="transitionError" style="color:#dc2626;font-size:12px;margin-top:6px;padding:6px 10px;background:#fef2f2;border-radius:6px;"></div>
+        </div>
+
+        <!-- Documents -->
+        <div class="modal-section" x-show="selectedDocs.length">
+          <div class="modal-section-title" x-text="'📎 ' + VISET.__('sd.documents')">📎 Documents</div>
+          <template x-for="doc in selectedDocs" :key="doc.id">
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f8fafc;border-radius:8px;margin-top:6px;font-size:12px;border:1px solid #e2e8f0">
+              <span>📄</span>
+              <a :href="doc.file_url" target="_blank" style="color:#6366f1;text-decoration:underline;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" x-text="(doc.doc_type ? '[' + doc.doc_type + '] ' : '') + doc.original_name"></a>
+              <span x-text="(doc.file_size / 1024).toFixed(0) + 'KB'" style="color:#9ca3af;flex-shrink:0"></span>
+            </div>
+            <div x-show="isImageDoc(doc)" style="margin-top:4px">
+              <img :src="doc.file_url" style="max-width:100%;max-height:180px;border-radius:6px;border:1px solid #e2e8f0;cursor:pointer" @click="window.open(doc.file_url, '_blank')">
+            </div>
+          </template>
+        </div>
+
+        <!-- Branch Tasks -->
+        <div class="modal-section">
+          <div class="modal-section-title">🌿 Branch Tasks</div>
+          <template x-for="st in selected?.sub_tasks || []" :key="st.id">
+            <div style="display:flex;align-items:center;gap:6px;padding:6px 8px;background:#f8fafc;border-radius:6px;margin-top:4px;font-size:11px;border-left:3px solid #cbd5e1;cursor:pointer" @click="openDetail(st)">
+              <span x-text="st.visit_task === 'followup' ? '📞' : st.visit_task === 'demo' ? '📱' : st.visit_task === 'payment' ? '💰' : st.visit_task === 'callback' ? '🔙' : '🛒'"></span>
+              <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500" x-text="st.customer_name"></span>
+              <span class="wf-card-sub-status" :style="'background:' + (getStateInfo(st.status)?.color + '20' || '#f3f4f6') + ';color:' + (getStateInfo(st.status)?.color || '#6b7280')" x-text="st.status"></span>
+            </div>
+          </template>
+          <div x-show="!(selected?.sub_tasks || []).length" style="font-size:11px;color:#9ca3af;padding:4px 0">No branch tasks yet</div>
+          <button @click="showBranchForm = !showBranchForm" style="margin-top:6px;padding:6px 12px;background:#f0fdf4;color:#065f46;border:1px dashed #86efac;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer">➕ Add Branch Task</button>
+          <div x-show="showBranchForm" x-cloak style="margin-top:8px;padding:10px;background:#f0fdf4;border-radius:8px;border:1px solid #86efac">
+            <div style="font-size:12px;font-weight:600;color:#065f46;margin-bottom:6px">🌿 New Branch Task</div>
+            <select x-model="branchTaskType" style="width:100%;padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:11px;margin-bottom:6px">
+              <option value="followup">📞 Follow-up</option>
+              <option value="demo">📱 Demo</option>
+              <option value="payment">💰 Payment</option>
+              <option value="callback">🔙 Call Back</option>
+              <option value="order">📋 Order</option>
+              <option value="visit">🛒 Visit</option>
+            </select>
+            <input type="text" x-model="branchTaskNote" placeholder="Note / purpose..." style="width:100%;padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:11px;margin-bottom:6px">
+            <div style="display:flex;gap:4px">
+              <button @click="createBranchTask" :disabled="savingBranch" style="flex:1;padding:6px;background:#059669;color:#fff;border:0;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer" x-text="savingBranch ? '⏳...' : '✅ Create Branch'"></button>
+              <button @click="showBranchForm = false" style="padding:6px 10px;background:#e5e7eb;color:#374151;border:0;border-radius:6px;font-size:11px;cursor:pointer">Cancel</button>
+            </div>
+            <div x-show="branchMsg" style="font-size:11px;padding:4px;margin-top:4px;border-radius:4px" :style="branchMsgType==='error'?'background:#fee2e2;color:#991b1b':'background:#d1fae5;color:#065f46'" x-text="branchMsg"></div>
+          </div>
+        </div>
+
+        <div class="modal-section">
+          <div class="modal-section-title" x-text="'📋 ' + VISET.__('tickets.activity_log')">📋 Activity Log</div>
+          <div class="wf-log">
+            <template x-for="entry in log" :key="entry.id">
+              <div class="wf-log-item">
+                <div class="wf-log-dot" :style="'background:' + (getStateInfo(entry.to_status || entry.from_status)?.color || '#9ca3af')"></div>
+                <div class="wf-log-content">
+                  <div><span class="wf-log-action" x-text="entry.action || entry.to_status"></span> <span class="wf-log-user" x-text="entry.user_name"></span></div>
+                  <div x-show="entry.note" class="wf-log-note" x-text="entry.note"></div>
+                  <div class="wf-log-date" x-text="new Date(entry.created_at).toLocaleString()"></div>
+                </div>
+              </div>
+            </template>
+            <div x-show="!log.length" style="text-align:center;padding:16px;color:#9ca3af;font-size:12px" x-text="VISET.__('tickets.no_activity')">No activity yet</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="/js/lang.js"></script>
+<script src="/js/utils.js"></script>
+<script src="/js/manager.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.12/dist/cdn.min.js"></script>
+
+</body>
+</html>

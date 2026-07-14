@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>VISET — Approvals</title>
+<link rel="stylesheet" href="/css/rtl.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f1f5f9;color:#1e293b;overflow-x:hidden}
+  .v-hdr{background:linear-gradient(135deg,#1e1b4b,#312e81);padding:28px 24px;color:#fff}
+  .v-hdr h1{font-size:22px;font-weight:700}
+  .v-hdr p{color:#a5b4fc;font-size:13px;margin-top:4px}
+  .v-nav{background:#fff;padding:0 24px;display:flex;gap:4px;border-bottom:1px solid #e2e8f0;overflow-x:auto}
+  .v-nav a{padding:14px 16px;text-decoration:none;font-size:13px;font-weight:500;color:#64748b;border-bottom:2px solid transparent;white-space:nowrap}
+  .v-nav a.active{color:#4f46e5;border-bottom-color:#4f46e5}
+  .v-body{padding:20px 16px;max-width:800px;margin:0 auto}
+  .ap-card{background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);border-left:4px solid #f59e0b}
+  .ap-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+  .ap-card-title{font-size:15px;font-weight:700;color:#1e1b4b}
+  .ap-card-id{font-size:10px;color:#9ca3af;background:#f3f4f6;padding:2px 6px;border-radius:4px;font-weight:600}
+  .ap-card-meta{font-size:12px;color:#6b7280;margin-bottom:8px;display:flex;gap:16px;flex-wrap:wrap}
+  .ap-card-meta span{display:flex;align-items:center;gap:4px}
+  .ap-card-actions{display:flex;gap:8px;margin-top:10px}
+  .ap-card-note{font-size:12px;color:#6b7280;background:#f9fafb;padding:8px 10px;border-radius:6px;margin-top:8px}
+  .wf-action-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;border:0;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+  .v-btn-primary{background:#6366f1;color:#fff}
+  .v-btn-primary:hover{background:#4f46e5}
+  .wf-empty{text-align:center;padding:40px 20px;color:#9ca3af;font-size:14px}
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px}
+  .modal-content{background:#fff;border-radius:16px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+  .modal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+  .modal-hdr h2{font-size:18px;font-weight:700;color:#1e1b4b}
+  .modal-close{background:none;border:0;font-size:22px;color:#9ca3af;cursor:pointer;padding:4px}
+  .modal-section{margin-bottom:16px}
+  .modal-section-title{font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+  .modal-info{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px}
+  .modal-info div{padding:6px 0}
+  .modal-info .lbl{color:#6b7280;font-size:11px}
+  .modal-info .val{font-weight:500;color:#1e293b}
+  .wf-transition-note{width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;margin-bottom:8px;resize:vertical;min-height:40px}
+  .wf-transition-note:focus{outline:none;border-color:#6366f1;box-shadow:0 0 0 2px rgba(99,102,241,.12)}
+  .ap-card{cursor:pointer}
+  [x-cloak]{display:none!important}
+</style>
+</head>
+<body>
+<div x-data="approvalsComponent()">
+  <div class="v-hdr" style="position:relative">
+    <h1>⏳ <span x-text="VISET.__('nav.approvals') || 'Approvals'"></span></h1>
+    <p>Pending approval requests</p>
+    <button @click="VISET.toggleLang()" x-text="VISET.locale === 'en' ? 'العربية' : 'English'" style="background:none;border:0;color:#a5b4fc;font-size:12px;cursor:pointer;position:absolute;top:16px;right:24px"></button>
+  </div>
+  <div class="v-nav">
+    <span>
+      <a href="/manager/dashboard.html" x-show="_ready && VISET.can('admin.dashboard')" x-text="VISET.__('nav.dashboard')">Dashboard</a>
+      <a href="/manager/workflow.html" x-show="_ready && VISET.can('admin.workflow')" x-text="VISET.__('nav.workflow')">Workflow</a>
+      <a href="/admin/customers.html" x-show="_ready && VISET.can('admin.customers')" x-text="VISET.__('nav.customers')">Customers</a>
+      <a href="/tickets.html" x-show="_ready && VISET.can('ticket.view')" x-text="VISET.__('nav.tickets')">Tickets</a>
+      <a href="/manager/reports.html" x-show="_ready && VISET.can('reports.view')" x-text="VISET.__('nav.reports')">Reports</a>
+      <a href="/approvals.html" class="active" x-show="_ready && VISET.can('ticket.view')" x-text="VISET.__('nav.approvals')">Approvals</a>
+      <a href="/" style="margin-left:auto;color:#ef4444" x-text="VISET.__('nav.logout')">← Logout</a>
+    </span>
+  </div>
+  <div class="v-body">
+    <div style="margin-bottom:16px">
+      <button @click="loadApprovals" style="padding:8px 16px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;background:#fff;color:#374151;cursor:pointer;font-weight:600">🔄 Refresh</button>
+      <span style="margin-left:12px;font-size:13px;color:#6b7280" x-show="approvals.length > 0" x-text="approvals.length + ' pending'"></span>
+    </div>
+
+    <template x-for="a in approvals" :key="a.id">
+      <div class="ap-card" @click="openDetail(a)">
+        <div class="ap-card-top">
+          <div>
+            <div class="ap-card-title" x-text="a.ticket_title"></div>
+            <span class="ap-card-id" x-text="'#' + a.ticket_id"></span>
+          </div>
+          <span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:4px;background:#f59e0b20;color:#b45309">⏳ Pending</span>
+        </div>
+        <div class="ap-card-meta">
+          <span>📋 Flow: <strong x-text="flowLabel(a.ticket_flow)"></strong></span>
+          <span>👤 Requested by: <strong x-text="a.requester_name || '—'"></strong></span>
+          <span>📅 <strong x-text="new Date(a.created_at).toLocaleString()"></strong></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:13px;padding:8px 10px;background:#f8fafc;border-radius:6px">
+          <span style="padding:3px 8px;border-radius:4px;font-weight:600;color:#fff;background:#6366f1" x-text="getStatusLabel(a.from_status) || a.from_status"></span>
+          <span>→</span>
+          <span style="padding:3px 8px;border-radius:4px;font-weight:600;color:#fff" :style="'background:' + (getStatusColor(a.to_status))" x-text="getStatusLabel(a.to_status) || a.to_status"></span>
+        </div>
+        <div style="margin-top:8px;display:flex;align-items:center;gap:8px">
+          <div style="flex:1;height:6px;background:#e5e7eb;border-radius:999px;overflow:hidden">
+            <div :style="'width:' + flowProgressFor(a.from_status, a.ticket_flow) + '%;height:100%;border-radius:999px;background:' + progressColor(flowProgressFor(a.from_status, a.ticket_flow)) + ';transition:width .3s'"></div>
+          </div>
+          <span style="font-size:12px;font-weight:700;color:#6b7280" x-text="flowProgressFor(a.from_status, a.ticket_flow) + '%'"></span>
+        </div>
+        <div class="ap-card-actions" @click.stop>
+          <button class="wf-action-btn" style="background:#05966920;color:#059669" @click="approve(a)">✅ Approve</button>
+          <button class="wf-action-btn" style="background:#ef444420;color:#ef4444" @click="reject(a)">❌ Reject</button>
+        </div>
+      </div>
+    </template>
+    <div class="wf-empty" x-show="!approvals.length && !loading">
+      <div style="font-size:40px;margin-bottom:12px">✅</div>
+      <div>No pending approvals</div>
+    </div>
+    <div class="wf-empty" x-show="loading" x-text="VISET.__('loading')">Loading...</div>
+
+    <!-- Detail Modal -->
+    <div x-show="showModal" class="modal-overlay" @click.away="closeDetail" style="display:flex" :style="showModal ? '' : 'display:none'">
+      <div class="modal-content" @click.stop>
+        <div class="modal-hdr">
+          <h2 x-text="selected?.ticket_title"></h2>
+          <span class="ap-card-id" x-text="'#' + selected?.ticket_id" style="font-size:12px"></span>
+          <button @click="closeDetail" class="modal-close">✕</button>
+        </div>
+
+        <div class="modal-section">
+          <div class="modal-info">
+            <div><div class="lbl">Status</div><div class="val" style="color:#b45309;font-weight:700">⏳ Pending Approval</div></div>
+            <div><div class="lbl">📋 Flow</div><div class="val" x-text="flowLabel(selected?.ticket_flow)"></div></div>
+            <div><div class="lbl">👤 Requested by</div><div class="val" x-text="selected?.requester_name || '—'"></div></div>
+            <div><div class="lbl">📅 Date</div><div class="val" x-text="selected ? new Date(selected.created_at).toLocaleString() : ''"></div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:13px;margin-top:10px;padding:10px;background:#f8fafc;border-radius:6px">
+            <span style="padding:4px 10px;border-radius:4px;font-weight:600;color:#fff;background:#6366f1" x-text="getStatusLabel(selected?.from_status) || selected?.from_status"></span>
+            <span>→</span>
+            <span style="padding:4px 10px;border-radius:4px;font-weight:600;color:#fff" :style="'background:' + (getStatusColor(selected?.to_status))" x-text="getStatusLabel(selected?.to_status) || selected?.to_status"></span>
+          </div>
+          <div style="margin-top:8px;display:flex;align-items:center;gap:8px">
+            <div style="flex:1;height:6px;background:#e5e7eb;border-radius:999px;overflow:hidden">
+              <div :style="'width:' + flowProgressFor(selected?.from_status, selected?.ticket_flow) + '%;height:100%;border-radius:999px;background:' + progressColor(flowProgressFor(selected?.from_status, selected?.ticket_flow)) + ';transition:width .3s'"></div>
+            </div>
+            <span style="font-size:12px;font-weight:700;color:#6b7280" x-text="flowProgressFor(selected?.from_status, selected?.ticket_flow) + '%'"></span>
+          </div>
+        </div>
+
+        <!-- Purchase Items Summary -->
+        <div class="modal-section" x-show="purchaseSummary.lines.length" style="border:1px solid #e0e7ff;border-radius:10px;padding:12px;background:#f8faff">
+          <div class="modal-section-title" style="color:#0891b2">📋 Purchase Items Summary</div>
+          <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse;font-size:12px">
+              <thead>
+                <tr style="background:#f1f5f9">
+                  <th style="padding:6px 8px;text-align:left;font-size:10px;color:#475569;border-bottom:1px solid #e2e8f0">Item</th>
+                  <th style="padding:6px 8px;text-align:center;font-size:10px;color:#475569;border-bottom:1px solid #e2e8f0">Qty</th>
+                  <th style="padding:6px 8px;text-align:right;font-size:10px;color:#475569;border-bottom:1px solid #e2e8f0">Price</th>
+                  <th style="padding:6px 8px;text-align:right;font-size:10px;color:#475569;border-bottom:1px solid #e2e8f0">Line Total</th>
+                  <th style="padding:6px 8px;text-align:right;font-size:10px;color:#475569;border-bottom:1px solid #e2e8f0">VAT</th>
+                  <th style="padding:6px 8px;text-align:right;font-size:10px;color:#475569;border-bottom:1px solid #e2e8f0">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <template x-for="(line, idx) in purchaseSummary.lines" :key="idx">
+                  <tr>
+                    <td style="padding:6px 8px;border-bottom:1px solid #f1f5f9"><span style="font-weight:600" x-text="line.item_number"></span> <span style="color:#64748b" x-text="line.name"></span></td>
+                    <td style="padding:6px 8px;text-align:center;border-bottom:1px solid #f1f5f9" x-text="line.qty"></td>
+                    <td style="padding:6px 8px;text-align:right;border-bottom:1px solid #f1f5f9" x-text="Number(line.price).toFixed(3)"></td>
+                    <td style="padding:6px 8px;text-align:right;border-bottom:1px solid #f1f5f9;font-weight:600" x-text="Number(line.lineTotal).toFixed(3)"></td>
+                    <td style="padding:6px 8px;text-align:right;border-bottom:1px solid #f1f5f9;color:#d97706" x-text="Number(line.lineVat).toFixed(3)"></td>
+                    <td style="padding:6px 8px;text-align:right;border-bottom:1px solid #f1f5f9;font-weight:700" x-text="Number(line.lineTotalWithVat).toFixed(3)"></td>
+                  </tr>
+                </template>
+              </tbody>
+              <tfoot>
+                <tr style="background:#f8faff;font-weight:700">
+                  <td colspan="3" style="padding:8px;text-align:right;border-top:2px solid #e2e8f0">Totals:</td>
+                  <td style="padding:8px;text-align:right;border-top:2px solid #e2e8f0;color:#0891b2" x-text="Number(purchaseSummary.netTotal).toFixed(3)"></td>
+                  <td style="padding:8px;text-align:right;border-top:2px solid #e2e8f0;color:#d97706" x-text="Number(purchaseSummary.totalVat).toFixed(3)"></td>
+                  <td style="padding:8px;text-align:right;border-top:2px solid #e2e8f0;color:#059669" x-text="Number(purchaseSummary.grandTotal).toFixed(3)"></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+        <!-- Activity Log -->
+        <div class="modal-section" x-show="log.length">
+          <div class="modal-section-title">📋 Activity Log</div>
+          <div style="font-size:12px">
+            <template x-for="entry in log" :key="entry.id">
+              <div style="display:flex;gap:10px;padding:6px 0;border-bottom:1px solid #f1f5f9">
+                <div style="width:10px;height:10px;border-radius:50%;margin-top:4px;flex-shrink:0" :style="'background:' + (getStatusColor(entry.to_status || entry.from_status) || '#9ca3af')"></div>
+                <div style="flex:1">
+                  <div><span style="font-weight:600;color:#1e293b" x-text="entry.action || entry.to_status"></span> <span style="color:#6366f1;font-size:11px" x-text="entry.user_name"></span></div>
+                  <div x-show="entry.note" style="color:#6b7280;font-size:11px;margin-top:2px;background:#f9fafb;padding:4px 8px;border-radius:4px" x-text="entry.note"></div>
+                  <div style="color:#9ca3af;font-size:10px;margin-top:2px" x-text="new Date(entry.created_at).toLocaleString()"></div>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- Approve / Reject -->
+        <div class="modal-section" style="border-top:1px solid #e5e7eb;padding-top:12px">
+          <textarea class="wf-transition-note" x-model="approvalNote" placeholder="Add a note (optional)"></textarea>
+          <div style="display:flex;gap:8px">
+            <button class="wf-action-btn" style="background:#05966920;color:#059669;flex:1;justify-content:center" @click="approveInModal">✅ Approve</button>
+            <button class="wf-action-btn" style="background:#ef444420;color:#ef4444;flex:1;justify-content:center" @click="rejectInModal">❌ Reject</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="/js/lang.js"></script>
+<script src="/js/utils.js"></script>
+<script src="/js/tickets.js"></script>
+<script>
+function approvalsComponent() {
+  return {
+    _ready: false,
+    approvals: [],
+    loading: false,
+    role: '',
+    userName: '',
+    selected: null,
+    showModal: false,
+    purchaseData: {},
+    log: [],
+    note: '',
+    approvalNote: '',
+
+    get flows() { return ticketFlows(); },
+    get statusInfo() { return ticketStatusInfo(); },
+    get priorityInfo() { return ticketPriorityInfo(); },
+
+    get purchaseSummary() {
+      const items = this.purchaseData.items || [];
+      const vatRate = (this.purchaseData.vat_rate || 0) / 100;
+      const lines = items.map(i => {
+        const qty = Number(i.qty) || 0;
+        const price = Number(i.price) || 0;
+        const lineTotal = qty * price;
+        const lineVat = lineTotal * vatRate;
+        return { ...i, qty, price, lineTotal, lineVat, lineTotalWithVat: lineTotal + lineVat };
+      });
+      const netTotal = lines.reduce((s, l) => s + l.lineTotal, 0);
+      const totalVat = lines.reduce((s, l) => s + l.lineVat, 0);
+      return { lines, netTotal, totalVat, grandTotal: netTotal + totalVat, vatRate: this.purchaseData.vat_rate || 0 };
+    },
+
+    async init() {
+      this._ready = VISET._permReady;
+      if (!VISET._permReady) await VISET.ready;
+      this._ready = true;
+      if (!VISET.user) { window.location.href = '/'; return; }
+      this.role = VISET.user.role;
+      this.userName = VISET.user.display_name || VISET.user.username || '';
+      this.loadApprovals();
+    },
+
+    async loadApprovals() {
+      this.loading = true;
+      try {
+        this.approvals = await VISET.api('tickets/approvals');
+      } catch (e) { console.warn(e); }
+      this.loading = false;
+    },
+
+    async openDetail(a) {
+      this.selected = a;
+      this.purchaseData = {};
+      this.log = [];
+      this.approvalNote = '';
+      this.showModal = true;
+      try {
+        const r = await VISET.api(`tickets/${a.ticket_id}`);
+        if (r.ticket) {
+          try { this.purchaseData = JSON.parse(r.ticket.purchase_data || '{}'); } catch { this.purchaseData = {}; }
+          if (!this.purchaseData.items) this.purchaseData.items = [];
+        }
+        this.log = r.log || [];
+      } catch (e) { console.warn(e); }
+    },
+
+    closeDetail() {
+      this.showModal = false;
+      this.selected = null;
+    },
+
+    flowLabel(key) {
+      if (!key) return 'Production';
+      return this.flows[key]?.label || key;
+    },
+
+    getStatusLabel(key) {
+      const s = this.statusInfo.find(x => x.key === key);
+      return s?.label || key;
+    },
+
+    getStatusColor(key) {
+      const s = this.statusInfo.find(x => x.key === key);
+      return s?.color || '#6b7280';
+    },
+
+    flowProgressFor(status, flowKey) {
+      const f = this.flows[flowKey || 'production'];
+      if (!f) return 0;
+      const statuses = f.statuses.filter(s => s.key !== 'awaiting_approval');
+      const idx = statuses.findIndex(s => s.key === status);
+      if (idx === -1) return 0;
+      return Math.round((idx / (statuses.length - 1)) * 100);
+    },
+
+    progressColor(pct) {
+      if (pct >= 100) return '#059669';
+      if (pct >= 50) return '#6366f1';
+      if (pct >= 20) return '#d97706';
+      return '#ef4444';
+    },
+
+    async approve(a) {
+      if (!confirm('Approve this request?')) return;
+      try {
+        await VISET.api(`tickets/${a.ticket_id}/approve`, { method: 'POST', headers: VISET.headers(), body: '{}' });
+        this.approvals = this.approvals.filter(x => x.id !== a.id);
+      } catch (e) { alert(e.message || 'Failed to approve'); }
+    },
+
+    async approveInModal() {
+      if (!this.selected) return;
+      try {
+        await VISET.api(`tickets/${this.selected.ticket_id}/approve`, {
+          method: 'POST', headers: VISET.headers(), body: JSON.stringify({ note: this.approvalNote || '' })
+        });
+        this.approvals = this.approvals.filter(x => x.id !== this.selected.id);
+        this.closeDetail();
+      } catch (e) { alert(e.message || 'Failed to approve'); }
+    },
+
+    async rejectInModal() {
+      if (!this.selected) return;
+      try {
+        await VISET.api(`tickets/${this.selected.ticket_id}/reject`, {
+          method: 'POST', headers: VISET.headers(), body: JSON.stringify({ note: this.approvalNote || '' })
+        });
+        this.approvals = this.approvals.filter(x => x.id !== this.selected.id);
+        this.closeDetail();
+      } catch (e) { alert(e.message || 'Failed to reject'); }
+    },
+
+    async reject(a) {
+      if (!confirm('Reject this request?')) return;
+      try {
+        await VISET.api(`tickets/${a.ticket_id}/reject`, { method: 'POST', headers: VISET.headers(), body: '{}' });
+        this.approvals = this.approvals.filter(x => x.id !== a.id);
+      } catch (e) { alert(e.message || 'Failed to reject'); }
+    },
+  };
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
+</body>
+</html>

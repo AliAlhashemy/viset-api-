@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VISET — Job Titles</title>
+<link rel="stylesheet" href="/css/rtl.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f1f5f9;color:#1e293b}
+  .v-hdr{background:linear-gradient(135deg,#1e1b4b,#312e81);padding:28px 24px;color:#fff;position:relative}
+  .v-hdr h1{font-size:22px;font-weight:700}
+  .v-hdr p{color:#a5b4fc;font-size:13px;margin-top:4px}
+  .v-nav{background:#fff;padding:0 24px;display:flex;gap:4px;border-bottom:1px solid #e2e8f0}
+  .v-nav a{padding:14px 16px;text-decoration:none;font-size:13px;font-weight:500;color:#64748b;border-bottom:2px solid transparent}
+  .v-nav a.active{color:#4f46e5;border-bottom-color:#4f46e5}
+  .v-body{padding:24px;max-width:800px;margin:0 auto}
+  .v-card{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);padding:20px;margin-bottom:16px}
+  .v-field{display:block;width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px}
+  .v-field:focus{outline:none;border-color:#6366f1;box-shadow:0 0 0 2px rgba(99,102,241,.12)}
+  .v-btn{display:inline-block;padding:8px 20px;border-radius:8px;font-size:13px;font-weight:600;border:0;cursor:pointer;transition:all .15s}
+  .v-btn-primary{background:#6366f1;color:#fff}
+  .v-btn-primary:hover{background:#4f46e5}
+  .v-btn-outline{background:transparent;border:1px solid #d1d5db;color:#374151}
+  .v-msg{padding:10px 14px;border-radius:8px;font-size:13px;margin-top:10px}
+  .v-msg.success{background:#d1fae5;color:#065f46}
+  .v-msg.error{background:#fee2e2;color:#991b1b}
+  [x-cloak]{display:none!important}
+  .v-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:100}
+  .v-modal{background:#fff;border-radius:12px;padding:24px;width:90%;max-width:420px;box-shadow:0 20px 40px rgba(0,0,0,.15)}
+  .v-modal h3{font-size:16px;font-weight:700;color:#1e1b4b;margin-bottom:14px}
+  .v-modal p{font-size:13px;color:#64748b;margin-bottom:12px}
+
+  .v-tree{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-top:16px;overflow:hidden}
+  .v-tree-empty{padding:50px;text-align:center;color:#9ca3af;font-size:14px}
+  .v-tr{display:flex;align-items:center;gap:6px;padding:8px 16px;border-bottom:1px solid #f1f5f9;transition:background .1s}
+  .v-tr:last-child{border-bottom:0}
+  .v-tr:hover{background:#f8fafc}
+  .v-tr-indent{flex-shrink:0}
+  .v-tr-connector{display:flex;align-items:center;flex-shrink:0;width:22px;position:relative}
+  .v-tr-line{border-left:2px solid #e2e8f0;height:100%;position:absolute;left:10px;top:-8px;bottom:-8px;width:0}
+  .v-tr-line.last{height:50%}
+  .v-tr-branch{width:12px;height:0;border-top:2px solid #e2e8f0;flex-shrink:0;margin-left:10px}
+  .v-tr-toggle{width:18px;height:18px;display:flex;align-items:center;justify-content:center;border-radius:4px;font-size:9px;color:#94a3b8;cursor:pointer;flex-shrink:0;transition:all .1s;user-select:none}
+  .v-tr-toggle:hover{background:#e2e8f0;color:#475569}
+  .v-tr-toggle.has{color:#64748b}
+  .v-tr-toggle.open{transform:rotate(90deg)}
+  .v-tr-dot{width:18px;height:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .v-tr-dot-inner{width:6px;height:6px;border-radius:50%;background:#cbd5e1}
+  .v-tr-color{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .v-tr-body{flex:1;display:flex;align-items:center;gap:8px;min-width:0}
+  .v-tr-name{font-weight:600;font-size:13px;color:#1e293b}
+  .v-tr-count{font-size:11px;font-weight:600;color:#6366f1;background:#eef2ff;padding:1px 8px;border-radius:999px;white-space:nowrap}
+  .v-tr-actions{display:flex;gap:2px;opacity:0;transition:opacity .12s;flex-shrink:0}
+  .v-tr:hover .v-tr-actions{opacity:1}
+  .v-tr-act{background:none;border:0;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:12px;color:#94a3b8;transition:all .1s}
+  .v-tr-act:hover{background:#e2e8f0}
+  .v-tr-act.add:hover{color:#059669}
+  .v-tr-act.edit:hover{color:#6366f1}
+  .v-tr-act.del:hover{color:#dc2626}
+  .v-tree-hdr{display:flex;align-items:center;padding:10px 16px;background:#f8fafc;border-bottom:1px solid #e5e7eb}
+  .v-tree-hdr span{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#64748b}
+</style>
+</head>
+<body>
+<div x-data="jobTitleManager()">
+  <div class="v-hdr">
+    <h1>👔 <span x-text="VISET.__('admin.job_titles')"></span></h1>
+    <p x-text="VISET.__('job_titles.subtitle')"></p>
+    <button @click="VISET.toggleLang()" x-text="VISET.locale === 'en' ? 'العربية' : 'English'" style="background:none;border:0;color:#a5b4fc;font-size:12px;cursor:pointer;position:absolute;top:16px;right:24px"></button>
+  </div>
+  <div class="v-nav">
+    <a href="/admin/dashboard.html" x-show="_ready && VISET.can('admin.dashboard')"><span x-text="VISET.__('nav.dashboard')"></span></a>
+    <a href="/admin/workflow.html" x-show="_ready && VISET.can('admin.workflow')"><span x-text="VISET.__('nav.workflow')"></span></a>
+    <a href="/admin/customers.html" x-show="_ready && VISET.can('admin.customers')"><span x-text="VISET.__('nav.customers')"></span></a>
+    <a href="/admin/employees.html" x-show="_ready && VISET.can('admin.employees')"><span x-text="VISET.__('nav.employees')"></span></a>
+    <a href="/admin/departments.html" x-show="_ready && VISET.can('admin.departments')"><span x-text="VISET.__('admin.departments')"></span></a>
+    <a href="/admin/job-titles.html" class="active" x-show="_ready && VISET.can('admin.job_titles')"><span x-text="VISET.__('admin.job_titles')"></span></a>
+    <a href="/manager/dashboard.html" style="color:#7c3aed;font-weight:600">👤 <span x-text="VISET.__('nav.manager_view')"></span></a>
+    <a href="/tickets.html" x-show="_ready && VISET.can('ticket.view')"><span x-text="VISET.__('nav.tickets')"></span></a>
+    <a href="/admin/reports.html" x-show="_ready && VISET.can('reports.view')"><span x-text="VISET.__('nav.reports')"></span></a>
+    <a href="/" style="margin-left:auto;color:#ef4444">← <span x-text="VISET.__('nav.logout')"></span></a>
+  </div>
+  <div class="v-body">
+    <div class="v-card">
+      <h3 style="font-size:15px;font-weight:600;color:#1e1b4b;margin-bottom:12px">➕ <span x-text="VISET.__('job_titles.new')"></span></h3>
+      <form @submit.prevent="createTitle">
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <input type="text" class="v-field" x-model="form.name" :placeholder="VISET.__('job_titles.name_placeholder')" required style="flex:1;min-width:180px">
+          <select class="v-field" x-model="form.parent_id" style="flex:1;min-width:160px">
+            <option value="0">— Top Level —</option>
+            <template x-for="t in flatTitles" :key="t.id">
+              <option :value="t.id" x-text="'\u00A0'.repeat(t.level * 4) + t.name"></option>
+            </template>
+          </select>
+          <button type="submit" class="v-btn v-btn-primary" :disabled="saving" style="white-space:nowrap"><span x-text="saving ? VISET.__('loading') : VISET.__('create')"></span></button>
+        </div>
+        <div x-show="msg" class="v-msg" :class="msgType" x-text="msg"></div>
+      </form>
+    </div>
+
+    <!-- Tree Header -->
+    <div class="v-tree" x-show="visibleNodes.length">
+      <div class="v-tree-hdr">
+        <span>🏗️ Position Hierarchy</span>
+        <span style="margin-left:auto;font-weight:400;font-size:12px;text-transform:none;letter-spacing:0" x-text="'(' + flatTitles.length + ' positions)'"></span>
+      </div>
+
+      <!-- Tree Rows -->
+      <template x-for="(item, idx) in visibleNodes" :key="item.id">
+        <div class="v-tr" :style="'padding-left:' + (16 + item.level * 28) + 'px'">
+          <!-- Connector lines for non-root nodes -->
+          <template x-if="item.level > 0">
+            <div class="v-tr-connector">
+              <div class="v-tr-branch"></div>
+              <div class="v-tr-line" :class="item._last ? 'last' : ''"></div>
+            </div>
+          </template>
+
+          <!-- Toggle or dot -->
+          <template x-if="item._hasChildren">
+            <span class="v-tr-toggle has" :class="item._open ? 'open' : ''" @click="toggle(item.id)">▶</span>
+          </template>
+          <template x-if="!item._hasChildren">
+            <span class="v-tr-dot"><span class="v-tr-dot-inner"></span></span>
+          </template>
+
+          <!-- Color dot -->
+          <span class="v-tr-color" :style="'background:' + levelColors[item.level % levelColors.length]"></span>
+
+          <!-- Name + count -->
+          <div class="v-tr-body">
+            <span class="v-tr-name" x-text="item.name"></span>
+            <span class="v-tr-count" x-text="item.employee_count + ' emp'"></span>
+          </div>
+
+          <!-- Actions -->
+          <div class="v-tr-actions">
+            <button class="v-tr-act add" @click="openAddModal(item.id, item.name)" title="Add child">➕</button>
+            <button class="v-tr-act edit" @click="openEdit(item)" title="Edit">✏️</button>
+            <button class="v-tr-act del" @click="deleteTitle(item.id, item.name)" title="Delete">🗑️</button>
+          </div>
+        </div>
+      </template>
+    </div>
+
+    <!-- Empty -->
+    <div class="v-tree" x-show="!visibleNodes.length">
+      <div class="v-tree-empty">
+        <div style="font-size:32px;margin-bottom:8px">🏗️</div>
+        <div x-text="VISET.__('no_data')"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div x-cloak x-show="showEditModal" class="v-modal-overlay" @click.self="showEditModal = false">
+    <div class="v-modal">
+      <h3>✏️ Edit Position</h3>
+      <form @submit.prevent="saveTitle">
+        <input type="text" class="v-field" x-model="editForm.name" placeholder="Position name" required>
+        <select class="v-field" x-model="editForm.parent_id" style="margin-top:10px">
+          <option value="0">— Top Level —</option>
+          <template x-for="t in flatTitles.filter(x => x.id !== editForm.id)" :key="t.id">
+            <option :value="t.id" x-text="'\u00A0'.repeat(t.level * 4) + t.name"></option>
+          </template>
+        </select>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button type="submit" class="v-btn v-btn-primary" :disabled="saving" x-text="saving ? '⏳ Saving...' : 'Save'"></button>
+          <button type="button" class="v-btn v-btn-outline" @click="showEditModal = false">Cancel</button>
+        </div>
+        <div x-show="msg" class="v-msg" :class="msgType" x-text="msg"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Child Modal -->
+  <div x-cloak x-show="showAddModal" class="v-modal-overlay" @click.self="showAddModal = false">
+    <div class="v-modal">
+      <h3>➕ Add Child Position</h3>
+      <p>Under: <strong x-text="addForm.parentName"></strong></p>
+      <form @submit.prevent="createChildTitle">
+        <input type="text" class="v-field" x-model="addForm.name" placeholder="Position name" required>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button type="submit" class="v-btn v-btn-primary" :disabled="saving" x-text="saving ? '⏳ Saving...' : 'Create'"></button>
+          <button type="button" class="v-btn v-btn-outline" @click="showAddModal = false">Cancel</button>
+        </div>
+        <div x-show="addMsg" class="v-msg" :class="addMsgType" x-text="addMsg"></div>
+      </form>
+    </div>
+  </div>
+</div>
+<script src="/js/lang.js"></script>
+<script src="/js/utils.js"></script>
+<script>
+document.addEventListener('alpine:init', () => {
+  Alpine.data('jobTitleManager', () => ({
+    _ready: false,
+    titles: [],
+    flatTitles: [],
+    collapsed: {},
+    form: { name: '', parent_id: 0 },
+    editForm: { id: 0, name: '', parent_id: 0 },
+    addForm: { parentId: 0, parentName: '', name: '' },
+    showEditModal: false,
+    showAddModal: false,
+    saving: false,
+    msg: '',
+    msgType: '',
+    addMsg: '',
+    addMsgType: '',
+    levelColors: ['#4f46e5','#7c3aed','#0891b2','#059669','#d97706','#dc2626','#db2777','#78716c'],
+
+    init() { this._ready = VISET._permReady; if (!VISET._permReady) VISET.ready.then(() => { this._ready = true; if (!VISET.can('admin.job_titles')) window.location.href = '/'; }); else if (!VISET.can('admin.job_titles')) window.location.href = '/'; this.load(); },
+
+    get visibleNodes() {
+      const result = [];
+      const walk = (nodes, depth, parentLast) => {
+        nodes.forEach((n, i) => {
+          const isLast = i === nodes.length - 1;
+          const children = this.flatTitles.filter(t => t.parent_id === n.id);
+          result.push({
+            ...n,
+            level: depth,
+            _hasChildren: children.length > 0,
+            _open: this.collapsed[n.id] !== false,
+            _last: isLast && parentLast,
+          });
+          if (children.length > 0 && this.collapsed[n.id] !== false) {
+            walk(children, depth + 1, isLast);
+          }
+        });
+      };
+      const roots = this.flatTitles.filter(t => !t.parent_id || !this.flatTitles.some(x => x.id === t.parent_id));
+      walk(roots, 0, true);
+      return result;
+    },
+
+    toggle(id) {
+      this.collapsed[id] = this.collapsed[id] === false ? true : false;
+    },
+
+    async load() {
+      try {
+        this.titles = await VISET.api('job-titles');
+        this.flatTitles = this.titles.slice().sort(
+          (a, b) => a.level - b.level || a.sort_order - b.sort_order || a.name.localeCompare(b.name)
+        );
+      } catch (e) { console.warn(e); }
+    },
+
+    async createTitle() {
+      if (!this.form.name.trim()) { this.msg = 'Name required'; this.msgType = 'error'; return; }
+      this.saving = true; this.msg = '';
+      try {
+        const r = await fetch(`${VISET.API_BASE}/job-titles`, {
+          method: 'POST', headers: { Authorization: `Bearer ${VISET.token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: this.form.name.trim(), parent_id: this.form.parent_id }),
+        });
+        const d = await r.json();
+        if (r.ok) {
+          this.msg = 'Position created'; this.msgType = 'success';
+          this.form = { name: '', parent_id: 0 };
+          this.load();
+        } else { this.msg = d.error; this.msgType = 'error'; }
+      } catch (e) { this.msg = 'Connection error'; this.msgType = 'error'; }
+      this.saving = false;
+    },
+
+    openAddModal(parentId, parentName) {
+      this.addForm = { parentId, parentName, name: '' };
+      this.addMsg = '';
+      this.showAddModal = true;
+    },
+
+    async createChildTitle() {
+      if (!this.addForm.name.trim()) { this.addMsg = 'Name required'; this.addMsgType = 'error'; return; }
+      this.saving = true; this.addMsg = '';
+      try {
+        const r = await fetch(`${VISET.API_BASE}/job-titles`, {
+          method: 'POST', headers: { Authorization: `Bearer ${VISET.token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: this.addForm.name.trim(), parent_id: this.addForm.parentId }),
+        });
+        const d = await r.json();
+        if (r.ok) {
+          this.showAddModal = false;
+          this.load();
+          this.msg = 'Child position created'; this.msgType = 'success';
+        } else { this.addMsg = d.error; this.addMsgType = 'error'; }
+      } catch (e) { this.addMsg = 'Connection error'; this.addMsgType = 'error'; }
+      this.saving = false;
+    },
+
+    openEdit(t) {
+      this.editForm = { id: t.id, name: t.name, parent_id: t.parent_id || 0 };
+      this.showEditModal = true;
+      this.msg = '';
+    },
+
+    async saveTitle() {
+      if (!this.editForm.name.trim()) { this.msg = 'Name required'; this.msgType = 'error'; return; }
+      this.saving = true; this.msg = '';
+      try {
+        const r = await fetch(`${VISET.API_BASE}/job-titles/${this.editForm.id}`, {
+          method: 'PUT', headers: { Authorization: `Bearer ${VISET.token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: this.editForm.name.trim(), parent_id: this.editForm.parent_id }),
+        });
+        const d = await r.json();
+        if (r.ok) {
+          this.msg = 'Position updated'; this.msgType = 'success';
+          this.showEditModal = false;
+          this.load();
+        } else { this.msg = d.error; this.msgType = 'error'; }
+      } catch (e) { this.msg = 'Connection error'; this.msgType = 'error'; }
+      this.saving = false;
+    },
+
+    async deleteTitle(id, name) {
+      if (!confirm(`Delete "${name}"?`)) return;
+      try {
+        const r = await fetch(`${VISET.API_BASE}/job-titles/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${VISET.token}` } });
+        const d = await r.json();
+        if (r.ok) { this.load(); this.msg = 'Deleted'; this.msgType = 'success'; }
+        else { this.msg = d.error; this.msgType = 'error'; }
+      } catch (e) { this.msg = 'Error'; this.msgType = 'error'; }
+    },
+  }));
+});
+</script>
+<script src="/js/manager.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.12/dist/cdn.min.js"></script>
+</body>
+</html>

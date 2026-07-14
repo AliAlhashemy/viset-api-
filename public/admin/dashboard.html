@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VISET — Admin Dashboard</title>
+<link rel="stylesheet" href="/css/rtl.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f1f5f9;color:#1e293b}
+  .v-hdr{background:linear-gradient(135deg,#1e1b4b,#312e81);padding:28px 24px;color:#fff;position:relative}
+  .v-hdr h1{font-size:22px;font-weight:700}
+  .v-hdr p{color:#a5b4fc;font-size:13px;margin-top:4px}
+  .v-nav{background:#fff;padding:0 24px;display:flex;gap:4px;border-bottom:1px solid #e2e8f0;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+  .v-nav a{padding:14px 16px;text-decoration:none;font-size:13px;font-weight:500;color:#64748b;border-bottom:2px solid transparent;transition:all .15s}
+  .v-nav a.active{color:#4f46e5;border-bottom-color:#4f46e5}
+  .v-nav a:hover{color:#1e293b}
+  .v-body{padding:24px;max-width:1200px;margin:0 auto}
+  .v-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px}
+  .v-card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .v-card .num{font-size:28px;font-weight:700;color:#1e1b4b}
+  .v-card .lbl{font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:.04em;margin-top:4px}
+  .v-card .ico{font-size:24px;margin-bottom:6px}
+  .v-tbl{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden}
+  .v-tbl table{width:100%;border-collapse:collapse}
+  .v-tbl th{background:#f8fafc;color:#374151;font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.05em;padding:12px 14px;border-bottom:2px solid #e5e7eb;text-align:left}
+  .v-tbl td{padding:12px 14px;border-bottom:1px solid #f1f5f9;color:#374151;font-size:13px}
+  .v-tbl tr:last-child td{border-bottom:0}
+  .sm-card{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.06);padding:20px;margin-bottom:16px;border-left:4px solid #6366f1}
+  .sm-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+  .sm-name{font-size:17px;font-weight:700;color:#1e1b4b}
+  .sm-badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;background:#eef2ff;color:#4f46e5}
+  .sm-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-bottom:12px}
+  .sm-stat{text-align:center}
+  .sm-stat .n{font-size:20px;font-weight:700;color:#1e1b4b}
+  .sm-stat .l{font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
+  .sm-chart{display:flex;align-items:flex-end;gap:4px;height:50px;margin-bottom:12px;padding:4px 0}
+  .sm-bar{flex:1;border-radius:4px 4px 0 0;min-height:2px;position:relative;transition:height .3s}
+  .sm-bar:hover{opacity:.8}
+  .sm-bar-label{font-size:8px;color:#9ca3af;text-align:center;margin-top:2px;white-space:nowrap}
+  .sm-section-title{font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+  .sm-task-list{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+  .sm-task{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600}
+  .sm-cust-list{font-size:12px}
+  .sm-cust-list div{padding:3px 0;display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9}
+  .sm-cust-list div:last-child{border-bottom:0}
+  .sm-footer{display:flex;justify-content:space-between;font-size:11px;color:#9ca3af;padding-top:8px;border-top:1px solid #f1f5f9;margin-top:8px}
+  [x-cloak]{display:none!important}
+  @media(max-width:640px){.v-nav{overflow-x:auto}.v-nav a{white-space:nowrap;padding:12px 12px;font-size:12px}.v-body{padding:16px}.sm-stats{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+<div x-data="overviewDashboard()" x-init="init()">
+  <div class="v-hdr">
+    <h1><span>📊</span> <span x-text="VISET.__('admin.title')"></span></h1>
+    <p><span x-text="VISET.__('mgr.welcome')"></span><span x-text="VISET.user?.display_name || VISET.__('mgr.user')" style="color:#a5b4fc;font-weight:600"></span><span x-text="VISET.__('mgr.twelve_month_analytics')"></span></p>
+    <button @click="VISET.toggleLang()" x-text="VISET.locale === 'en' ? 'العربية' : 'English'" style="background:none;border:0;color:#a5b4fc;font-size:12px;cursor:pointer;position:absolute;top:16px;right:24px"></button>
+  </div>
+  <div class="v-nav">
+    <a href="/admin/dashboard.html" class="active" x-show="_ready && VISET.can('admin.dashboard')"><span x-text="VISET.__('nav.dashboard')"></span></a>
+    <a href="/admin/workflow.html" x-show="_ready && VISET.can('admin.workflow')"><span x-text="VISET.__('nav.workflow')"></span></a>
+    <a href="/manager/dashboard.html" style="color:#7c3aed;font-weight:600">👤 <span x-text="VISET.__('nav.manager_view')"></span></a>
+    <a href="/admin/customers.html" x-show="_ready && VISET.can('admin.customers')"><span x-text="VISET.__('nav.customers')"></span></a>
+    <a href="/admin/employees.html" x-show="_ready && VISET.can('admin.employees')"><span x-text="VISET.__('nav.employees')"></span></a>
+    <a href="/admin/departments.html" x-show="_ready && VISET.can('admin.departments')"><span x-text="VISET.__('nav.departments')"></span></a>
+    <a href="/admin/job-titles.html" x-show="_ready && VISET.can('admin.job_titles')"><span x-text="VISET.__('nav.job_titles')"></span></a>
+    <a href="/admin/labels.html" x-show="_ready && VISET.can('admin.labels')">🏷️ Labels</a>
+    <a href="/tickets.html" x-show="_ready && VISET.can('ticket.view')"><span x-text="VISET.__('nav.tickets')"></span></a>
+    <a href="/admin/reports.html" x-show="_ready && VISET.can('reports.view')"><span x-text="VISET.__('nav.reports')"></span></a>
+    <a href="/" style="margin-left:auto;color:#ef4444">← <span x-text="VISET.__('nav.logout')"></span></a>
+  </div>
+  <div class="v-body">
+    <div class="v-grid" x-cloak>
+      <div class="v-card"><div class="ico">📊</div><div class="num" x-text="s.total_visits"></div><div class="lbl" x-text="VISET.__('mgr.total_visits')"></div></div>
+      <div class="v-card"><div class="ico">⏳</div><div class="num" x-text="s.pending"></div><div class="lbl" x-text="VISET.__('status.pending')"></div></div>
+      <div class="v-card"><div class="ico">✅</div><div class="num" x-text="s.approved"></div><div class="lbl" x-text="VISET.__('status.approved')"></div></div>
+      <div class="v-card"><div class="ico">🚩</div><div class="num" x-text="s.flagged"></div><div class="lbl" x-text="VISET.__('status.flagged')"></div></div>
+    </div>
+
+    <div x-cloak>
+      <template x-for="sm in s.salesmen" :key="sm.id">
+        <div class="sm-card">
+          <div class="sm-hdr">
+            <div>
+              <span class="sm-name" x-text="sm.display_name"></span>
+              <span class="sm-badge" style="margin-left:8px" x-text="`${sm.total_visits} ${VISET.__('mgr.visits')}`"></span>
+            </div>
+            <span style="font-size:11px;color:#9ca3af">
+              <span x-text="VISET.__('mgr.last_visit')"></span>: <span x-text="sm.last_visit ? new Date(sm.last_visit).toLocaleDateString() : VISET.__('mgr.never')"></span>
+            </span>
+          </div>
+
+          <div class="sm-stats">
+            <div class="sm-stat"><div class="n" x-text="sm.unique_customers"></div><div class="l" x-text="VISET.__('mgr.customers')"></div></div>
+            <div class="sm-stat"><div class="n" x-text="sm.repeat_rate + '%'"></div><div class="l" x-text="VISET.__('mgr.repeat_rate')"></div></div>
+            <div class="sm-stat"><div class="n" x-text="sm.repeat_visits"></div><div class="l" x-text="VISET.__('mgr.repeat_visits')"></div></div>
+            <div class="sm-stat"><div class="n" x-text="taskLabels[sm.top_task] || sm.top_task"></div><div class="l" x-text="VISET.__('mgr.top_task')"></div></div>
+          </div>
+
+          <div class="sm-section-title" x-text="VISET.__('mgr.monthly_trend')"></div>
+          <div class="sm-chart">
+            <template x-for="m in sm.monthly_trend" :key="m.month">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center">
+                <div class="sm-bar" :style="`height:${Math.max(2, (m.c / Math.max(...sm.monthly_trend.map(x=>x.c))) * 40)}px;background:linear-gradient(to top,#6366f1,#818cf8)`" :title="`${m.month}: ${m.c}`"></div>
+                <div class="sm-bar-label" x-text="m.month.slice(5)"></div>
+              </div>
+            </template>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div>
+              <div class="sm-section-title" x-text="VISET.__('mgr.task_breakdown')"></div>
+              <div class="sm-task-list">
+                <template x-for="t in sm.task_breakdown" :key="t.visit_task">
+                  <span class="sm-task" :style="`background:#eef2ff;color:#4f46e5`">
+                    <span x-text="taskLabels[t.visit_task] || t.visit_task"></span>
+                    <span x-text="t.c" style="font-size:10px;opacity:.7"></span>
+                  </span>
+                </template>
+              </div>
+            </div>
+            <div>
+              <div class="sm-section-title" x-text="VISET.__('mgr.top_customers')"></div>
+              <div class="sm-cust-list">
+                <template x-for="tc in sm.top_customers" :key="tc.customer_name">
+                  <div><span x-text="tc.customer_name"></span><span x-text="tc.c + 'x'" style="color:#6366f1;font-weight:600"></span></div>
+                </template>
+                <div x-show="!sm.top_customers.length" style="color:#9ca3af;font-size:12px" x-text="VISET.__('no_data')"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sm-footer">
+            <span>⚡ <span x-text="sm.total_visits > 0 ? (sm.total_visits / 12).toFixed(1) : 0"></span> <span x-text="VISET.__('mgr.avg_visits_month')"></span></span>
+            <span>🔄 <span x-text="sm.repeat_customers"></span> <span x-text="VISET.__('mgr.repeat_customers')"></span></span>
+          </div>
+        </div>
+      </template>
+      <div x-show="!s.salesmen.length" style="text-align:center;padding:40px;color:#9ca3af" x-text="VISET.__('mgr.no_salesman_data')"></div>
+    </div>
+
+    <h3 style="font-size:15px;font-weight:600;color:#1e1b4b;margin:24px 0 12px" x-text="VISET.__('mgr.recent_visits')"></h3>
+    <div class="v-tbl" x-cloak>
+      <table>
+        <thead><tr><th x-text="VISET.__('mgr.customer')"></th><th x-text="VISET.__('mgr.task')"></th><th x-text="VISET.__('mgr.status')"></th><th x-text="VISET.__('mgr.salesman')"></th><th x-text="VISET.__('mgr.date')"></th></tr></thead>
+        <tbody>
+          <template x-for="v in recent" :key="v.id">
+            <tr>
+              <td x-text="v.customer_name"></td>
+              <td><span style="padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;background:#f3f4f6;color:#374151" x-text="taskLabels[v.visit_task] || v.visit_task || 'Visit'"></span></td>
+              <td><span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600" :style="v.status==='approved'?'background:#dcfce7;color:#16a34a':v.status==='flagged'?'background:#fce4ec;color:#dc2626':'background:#fef3c7;color:#d97706'"><span style="width:6px;height:6px;border-radius:50%;display:inline-block" :style="'background:'+(v.status==='approved'?'#16a34a':v.status==='flagged'?'#dc2626':'#d97706')"></span><span x-text="VISET.__('status.' + v.status) || v.status"></span></span></td>
+              <td x-text="v.author_name"></td>
+              <td style="color:#6b7280;font-size:12px" x-text="v.created_at"></td>
+            </tr>
+          </template>
+          <tr x-show="!recent.length"><td colspan="5" style="text-align:center;color:#9ca3af" x-text="VISET.__('mgr.no_visits')"></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<script src="/js/lang.js"></script>
+<script src="/js/utils.js"></script>
+<script src="/js/manager.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.12/dist/cdn.min.js"></script>
+</body>
+</html>

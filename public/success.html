@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>VISET — Success</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:linear-gradient(135deg,#ecfdf5,#eff6ff);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+  .su-card{background:#fff;border-radius:20px;box-shadow:0 10px 40px rgba(0,0,0,.08);padding:40px 32px;max-width:360px;width:100%;text-align:center}
+  .su-icon{font-size:56px;margin-bottom:12px}
+  .su-title{font-size:22px;font-weight:700;color:#1e1b4b}
+  .su-sub{color:#6b7280;font-size:14px;margin-top:8px}
+  .su-streak{display:inline-block;margin-top:16px;background:#fef3c7;color:#92400e;padding:8px 20px;border-radius:999px;font-size:14px;font-weight:600}
+  .su-redirect{color:#9ca3af;font-size:13px;margin-top:24px}
+</style>
+</head>
+<body>
+<div x-data="visetSuccess()" x-init="initSuccess()">
+  <div class="su-card">
+    <div class="su-icon">✅</div>
+    <h1 class="su-title">Visit Recorded!</h1>
+    <p class="su-sub" x-text="`#${visitId}`"></p>
+    <div x-show="streak" class="su-streak">⭐ Streak: <span x-text="streak"></span></div>
+    <p class="su-redirect">Redirecting to dashboard...</p>
+  </div>
+  <canvas id="confetti-canvas" style="position:fixed;inset:0;pointer-events:none"></canvas>
+</div>
+<script src="/js/lang.js"></script>
+<script src="/js/utils.js"></script>
+<script src="/js/salesman.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.12/dist/cdn.min.js"></script>
+</body>
+</html>

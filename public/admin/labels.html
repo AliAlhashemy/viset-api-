@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VISET — Permission Labels</title>
+<link rel="stylesheet" href="/css/rtl.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f1f5f9;color:#1e293b}
+  .v-hdr{background:linear-gradient(135deg,#1e1b4b,#312e81);padding:28px 24px;color:#fff}
+  .v-hdr h1{font-size:22px;font-weight:700}
+  .v-hdr p{color:#a5b4fc;font-size:13px;margin-top:4px}
+  .v-nav{background:#fff;padding:0 24px;display:flex;gap:4px;border-bottom:1px solid #e2e8f0}
+  .v-nav a{padding:14px 16px;text-decoration:none;font-size:13px;font-weight:500;color:#64748b;border-bottom:2px solid transparent}
+  .v-nav a.active{color:#4f46e5;border-bottom-color:#4f46e5}
+  .v-nav a:hover{color:#1e293b}
+  .v-body{padding:24px;max-width:1200px;margin:0 auto}
+  .v-col{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.06);padding:20px;margin-bottom:16px}
+  .v-col h2{font-size:15px;font-weight:700;color:#1e1b4b;margin-bottom:12px}
+  .p-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media(max-width:768px){.p-grid{grid-template-columns:1fr}}
+  .lb-wrap{display:flex;flex-wrap:wrap;gap:8px;min-height:40px;padding:8px;background:#f8fafc;border-radius:8px;border:2px dashed #e2e8f0}
+  .lb-tag{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;font-size:12px;font-weight:600;color:#fff;cursor:grab;user-select:none}
+  .lb-tag:active{cursor:grabbing;opacity:.8}
+  .lb-tag .del{background:rgba(0,0,0,.2);border:0;color:#fff;border-radius:50%;width:16px;height:16px;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .user-card{display:flex;align-items:center;gap:12px;padding:10px 12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;margin-bottom:8px;min-height:50px}
+  .user-card .name{font-weight:600;font-size:13px;flex-shrink:0;width:140px}
+  .user-card .label-zone{display:flex;flex-wrap:wrap;gap:6px;flex:1;min-height:32px;padding:4px;background:#fff;border-radius:6px;border:2px dashed #e2e8f0}
+  .user-card .label-zone.dragover{border-color:#6366f1;background:#eef2ff}
+  .perm-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .perm-badge{padding:3px 10px;border-radius:6px;font-size:10px;font-weight:600;background:#f1f5f9;color:#475569}
+  .btn{padding:8px 16px;border:0;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer}
+  .btn-primary{background:#6366f1;color:#fff}
+  .btn-sm{padding:5px 12px;font-size:11px}
+  .inp{width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;margin-bottom:6px}
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:100}
+  .modal-box{background:#fff;border-radius:12px;padding:24px;width:90%;max-width:480px;max-height:80vh;overflow-y:auto}
+  .modal-box h3{font-size:16px;font-weight:700;margin-bottom:12px}
+  .chk-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;max-height:300px;overflow-y:auto}
+  .chk-grid label{display:flex;align-items:center;gap:6px;font-size:12px;padding:4px 8px;border-radius:6px;background:#f8fafc;cursor:pointer}
+  .chk-grid label:hover{background:#eef2ff}
+  [x-cloak]{display:none!important}
+</style>
+</head>
+<body>
+<div x-data="labelsManager()" x-init="init()">
+  <div class="v-hdr">
+    <h1>🏷️ Permission Labels</h1>
+    <p>Create labels (permission groups) and drag-drop them onto users</p>
+    <button @click="VISET.toggleLang()" x-text="VISET.locale === 'en' ? 'العربية' : 'English'" style="background:none;border:0;color:#a5b4fc;font-size:12px;cursor:pointer;position:absolute;top:16px;right:24px"></button>
+  </div>
+  <div class="v-nav">
+    <a href="/admin/dashboard.html" x-show="_ready && VISET.can('admin.dashboard')"><span x-text="VISET.__('nav.dashboard')"></span></a>
+    <a href="/admin/workflow.html" x-show="_ready && VISET.can('admin.workflow')"><span x-text="VISET.__('nav.workflow')"></span></a>
+    <a href="/admin/customers.html" x-show="_ready && VISET.can('admin.customers')"><span x-text="VISET.__('nav.customers')"></span></a>
+    <a href="/admin/employees.html" x-show="_ready && VISET.can('admin.employees')"><span x-text="VISET.__('nav.employees')"></span></a>
+    <a href="/admin/departments.html" x-show="_ready && VISET.can('admin.departments')"><span x-text="VISET.__('nav.departments')"></span></a>
+    <a href="/admin/job-titles.html" x-show="_ready && VISET.can('admin.job_titles')"><span x-text="VISET.__('nav.job_titles')"></span></a>
+    <a href="/admin/labels.html" class="active" x-show="_ready && VISET.can('admin.labels')">🏷️ Labels</a>
+    <a href="/tickets.html" x-show="_ready && VISET.can('ticket.view')"><span x-text="VISET.__('nav.tickets')"></span></a>
+    <a href="/admin/reports.html" x-show="_ready && VISET.can('reports.view')"><span x-text="VISET.__('nav.reports')"></span></a>
+    <a href="/" style="margin-left:auto;color:#ef4444">← <span x-text="VISET.__('nav.logout')"></span></a>
+  </div>
+
+  <div class="v-body" x-cloak>
+    <div class="p-grid">
+      <!-- Left: Create Label -->
+      <div class="v-col">
+        <h2>+ Create New Label</h2>
+        <input class="inp" x-model="form.name" placeholder="Label name (e.g. Sales Team)">
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+          <label style="font-size:12px;color:#64748b">Color:</label>
+          <input type="color" x-model="form.color" style="width:40px;height:36px;border:0;cursor:pointer;border-radius:6px">
+          <span x-text="form.color" style="font-size:11px;color:#9ca3af"></span>
+        </div>
+        <input class="inp" x-model="form.description" placeholder="Description (optional)">
+        <button class="btn btn-primary" @click="createLabel" x-text="editing ? 'Update' : 'Create'"></button>
+      </div>
+
+      <!-- Right: All Labels -->
+      <div class="v-col">
+        <h2>Labels</h2>
+        <div x-show="!labels.length" style="color:#9ca3af;font-size:13px;padding:20px;text-align:center">No labels yet. Create one!</div>
+        <template x-for="lb in labels" :key="lb.id">
+          <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f8fafc;border-radius:8px;margin-bottom:6px;border-left:4px solid" :style="'border-left-color:' + lb.color">
+            <span class="lb-tag" :style="'background:' + lb.color" draggable="true" @dragstart="onDragStart($event, lb)">🏷️ <span x-text="lb.name"></span></span>
+            <span style="font-size:11px;color:#9ca3af;flex:1" x-text="lb.perm_count + ' permissions'"></span>
+            <button class="btn btn-sm" style="background:#eef2ff;color:#4f46e5" @click="editLabel(lb)">✏️</button>
+            <button class="btn btn-sm" style="background:#eef2ff;color:#4f46e5" @click="managePerms(lb)">🔑</button>
+            <button class="btn btn-sm" style="background:#fee2e2;color:#dc2626" @click="deleteLabel(lb)">✕</button>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <!-- Users with drag-drop zones -->
+    <div class="v-col">
+      <h2>Assign Labels to Users (drag & drop)</h2>
+      <div x-show="!users.length" style="color:#9ca3af;font-size:13px;padding:20px;text-align:center">Loading users...</div>
+      <template x-for="u in users" :key="u.id">
+        <div class="user-card">
+          <div class="name" x-text="u.display_name || u.username"></div>
+          <div class="label-zone"
+               :data-user-id="u.id"
+               @dragover.prevent="onDragOver($event)"
+               @dragleave="onDragLeave($event)"
+               @drop="onDrop($event, u)">
+            <template x-for="lb in getUserLabels(u.id)" :key="lb.id">
+              <span class="lb-tag" :style="'background:' + lb.color" style="cursor:default;position:relative">
+                🏷️ <span x-text="lb.name"></span>
+                <button class="del" @click="removeLabelFromUser(u.id, lb.id)" style="position:relative">✕</button>
+              </span>
+            </template>
+            <span x-show="!getUserLabels(u.id).length" style="color:#cbd5e1;font-size:11px">Drop labels here</span>
+          </div>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <!-- Permissions Modal -->
+  <div class="modal-overlay" x-show="showPermModal" x-cloak @click.self="showPermModal = false">
+    <div class="modal-box">
+      <h3 x-text="'🔑 Permissions for: ' + (permLabel?.name || '')"></h3>
+      <div class="chk-grid">
+        <template x-for="p in allPerms" :key="p.id">
+          <label>
+            <input type="checkbox" :value="p.id" x-model="selectedPermIds">
+            <span x-text="p.name"></span>
+          </label>
+        </template>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:8px">
+        <button class="btn btn-primary" @click="savePermissions">Save</button>
+        <button class="btn" style="background:#e5e7eb;color:#374151" @click="showPermModal = false">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/lang.js"></script>
+<script src="/js/utils.js"></script>
+<script>
+document.addEventListener('alpine:init', () => {
+  Alpine.data('labelsManager', () => ({
+    _ready: false,
+    labels: [],
+    users: [],
+    allPerms: [],
+    userLabelMap: {},
+    form: { name: '', color: '#6366f1', description: '' },
+    editing: null,
+    showPermModal: false,
+    permLabel: null,
+    selectedPermIds: [],
+    dragData: null,
+
+    async init() {
+      this._ready = VISET._permReady;
+      if (!VISET._permReady) await VISET.ready;
+      this._ready = true;
+      if (!VISET.can('admin.labels')) { window.location.href = '/'; return; }
+      await this.load();
+    },
+
+    async load() {
+      try {
+        this.labels = await VISET.api('permissions/labels');
+        const perms = await VISET.api('permissions');
+        this.allPerms = perms;
+        const users = await VISET.api('users');
+        this.users = users;
+        const ul = await VISET.api('permissions/user-labels');
+        this.userLabelMap = {};
+        for (const row of ul) {
+          if (!this.userLabelMap[row.user_id]) this.userLabelMap[row.user_id] = [];
+          this.userLabelMap[row.user_id].push({ id: row.label_id, name: row.label_name, color: row.label_color });
+        }
+      } catch (e) { console.warn(e); }
+    },
+
+    getUserLabels(userId) {
+      return this.userLabelMap[userId] || [];
+    },
+
+    async createLabel() {
+      if (!this.form.name.trim()) return alert('Name required');
+      try {
+        if (this.editing) {
+          await VISET.api(`permissions/labels/${this.editing.id}`, { method: 'PUT', headers: VISET.headers(), body: JSON.stringify(this.form) });
+        } else {
+          await VISET.api('permissions/labels', { method: 'POST', headers: VISET.headers(), body: JSON.stringify(this.form) });
+        }
+        this.form = { name: '', color: '#6366f1', description: '' };
+        this.editing = null;
+        await this.load();
+      } catch (e) { alert(e.message); }
+    },
+
+    editLabel(lb) {
+      this.editing = lb;
+      this.form = { name: lb.name, color: lb.color, description: lb.description || '' };
+    },
+
+    async deleteLabel(lb) {
+      if (!confirm(`Delete label "${lb.name}"?`)) return;
+      await VISET.api(`permissions/labels/${lb.id}`, { method: 'DELETE', headers: VISET.headers() });
+      await this.load();
+    },
+
+    async managePerms(lb) {
+      this.permLabel = lb;
+      this.selectedPermIds = [];
+      try {
+        const perms = await VISET.api(`permissions/labels/${lb.id}/permissions`);
+        this.selectedPermIds = perms.map(p => p.id);
+      } catch (e) { console.warn(e); }
+      this.showPermModal = true;
+    },
+
+    async savePermissions() {
+      await VISET.api(`permissions/labels/${this.permLabel.id}/permissions`, { method: 'PUT', headers: VISET.headers(), body: JSON.stringify({ permission_ids: this.selectedPermIds }) });
+      this.showPermModal = false;
+      await this.load();
+    },
+
+    onDragStart(e, lb) {
+      this.dragData = lb;
+      e.dataTransfer.effectAllowed = 'copy';
+      e.dataTransfer.setData('text/plain', lb.id);
+    },
+
+    onDragOver(e) { e.currentTarget.classList.add('dragover'); },
+    onDragLeave(e) { e.currentTarget.classList.remove('dragover'); },
+
+    async onDrop(e, user) {
+      e.currentTarget.classList.remove('dragover');
+      if (!this.dragData) return;
+      try {
+        await VISET.api(`permissions/users/${user.id}/labels`, { method: 'POST', headers: VISET.headers(), body: JSON.stringify({ label_id: this.dragData.id }) });
+        await this.load();
+      } catch (e) { alert(e.message); }
+    },
+
+    async removeLabelFromUser(userId, labelId) {
+      await VISET.api(`permissions/users/${userId}/labels/${labelId}`, { method: 'DELETE', headers: VISET.headers() });
+      await this.load();
+    },
+  }));
+});
+</script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>VISET — Dashboard</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:#f3f4f6; }
+  .s-hdr { background:linear-gradient(135deg,#1e1b4b,#312e81); padding:20px 16px; color:#fff; }
+  .s-hdr h1 { font-size:18px; font-weight:700; }
+  .s-hdr p { color:#a5b4fc; font-size:12px; margin-top:2px; }
+  .s-hdr-top { display:flex; justify-content:space-between; align-items:flex-start; }
+  .s-hdr-top button { color:#fca5a5; font-size:12px; background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2); padding:6px 14px; border-radius:8px; font-weight:600; cursor:pointer; transition:all .15s; }
+  .s-hdr-top button:hover { background:rgba(239,68,68,.5); border-color:#ef4444; color:#fff; }
+  .s-body { padding:16px; max-width:640px; margin:0 auto; }
+  .s-btn-primary { display:flex; width:100%; padding:16px; border-radius:12px; border:0; font-size:16px; font-weight:700; color:#fff; cursor:pointer; align-items:center; justify-content:center; gap:8px; background:linear-gradient(135deg,#6366f1,#4f46e5); transition:all .15s; box-shadow:0 2px 8px rgba(99,102,241,.3); }
+  .s-btn-primary:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(99,102,241,.4); }
+  .s-sync { background:#fef3c7; border-radius:10px; padding:12px 14px; font-size:13px; color:#92400e; display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:14px; }
+  .s-sync button { color:#4f46e5; text-decoration:underline; background:none; border:0; cursor:pointer; font-size:13px; }
+  .s-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:12px; margin-top:16px; }
+  .s-card { background:#fff; border-radius:10px; padding:0; border-left:4px solid; box-shadow:0 1px 3px rgba(0,0,0,.06); overflow:hidden }
+  .s-card-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px 4px}
+  .s-card-head h3{font-size:14px;font-weight:700;color:#1e1b4b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;margin:0}
+  .s-card-id{font-size:10px;color:#9ca3af;background:#f3f4f6;padding:1px 6px;border-radius:4px;font-weight:600;flex-shrink:0;margin-left:6px}
+  .s-card-date{font-size:10px;color:#9ca3af;flex-shrink:0;margin-left:6px}
+  .s-card-body{display:grid;grid-template-columns:1fr 1fr 1fr;margin:4px 12px 6px;border-top:1px solid #e5e7eb;border-bottom:1px solid #e5e7eb}
+  .s-card-col{padding:4px 6px;text-align:center;min-width:0}
+  .s-card-col+.s-card-col{border-left:1px solid #e5e7eb}
+  .s-card-col-label{font-size:9px;color:#9ca3af;text-transform:uppercase;letter-spacing:.02em;margin-bottom:1px}
+  .s-card-col-value{font-size:11px;font-weight:600;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .s-card .addr { font-size:11px; color:#6b7280; padding:2px 14px 4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+  .s-bdg { display:inline-block; padding:2px 10px; border-radius:999px; font-size:11px; font-weight:600; margin-top:8px; }
+  .s-bdg.pending { background:#fef3c7; color:#92400e; }
+  .s-bdg.review { background:#e0e7ff; color:#3730a3; }
+  .s-bdg.approved { background:#d1fae5; color:#065f46; }
+  .s-bdg.flagged { background:#fee2e2; color:#991b1b; }
+  .s-bdg.completed { background:#e5e7eb; color:#374151; }
+  .s-empty { text-align:center; padding:60px 20px; color:#9ca3af; }
+  .s-empty p:first-child { font-size:40px; margin-bottom:8px; }
+  .s-empty .t { font-size:16px; }
+  .s-empty .st { font-size:13px; margin-top:4px; }
+  .s-fab { position:fixed; bottom:20px; right:20px; width:56px; height:56px; border-radius:50%; border:0; background:linear-gradient(135deg,#6366f1,#4f46e5); color:#fff; font-size:28px; cursor:pointer; box-shadow:0 4px 12px rgba(99,102,241,.4); z-index:40; transition:transform .15s; display:flex; align-items:center; justify-content:center; }
+  .s-fab:hover { transform:scale(1.1); }
+  .s-modal { position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:50; display:flex; align-items:flex-end; }
+  @media (min-width:640px) { .s-modal { align-items:center; justify-content:center; } }
+  .s-modal-body { background:#fff; width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:20px; max-height:90vh; overflow-y:auto; }
+  @media (min-width:640px) { .s-modal-body { border-radius:16px; max-height:80vh; } }
+  .s-logout-footer { display:block; width:100%; padding:14px; border:0; border-radius:12px; font-size:14px; font-weight:600; cursor:pointer; background:#fef2f2; color:#991b1b; transition:all .15s; margin-top:24px; }
+  .s-logout-footer:hover { background:#fee2e2; }
+  @media (max-width:400px) { .s-grid { grid-template-columns:1fr; } }
+  @keyframes fadeIn { from { opacity:0;transform:translateY(-10px) } to { opacity:1;transform:translateY(0) } }
+  .wf-board{display:flex;gap:10px;overflow-x:auto;padding-bottom:16px;align-items:flex-start}
+  .wf-col{flex:0 0 200px;min-width:180px;background:#f1f5f9;border-radius:10px;padding:10px;display:flex;flex-direction:column}
+  .wf-col-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid}
+  .wf-col-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+  .wf-col-count{background:#e2e8f0;border-radius:999px;padding:2px 8px;font-size:11px;font-weight:700;color:#475569}
+  .wf-cards{display:flex;flex-direction:column;gap:6px;min-height:60px}
+  .wf-card{background:#fff;border-radius:8px;padding:10px;box-shadow:0 1px 3px rgba(0,0,0,.08);cursor:pointer;transition:all .15s;border-left:3px solid}
+  .wf-card:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.12)}
+  .wf-card-customer{font-size:13px;font-weight:600;color:#1e1b4b}
+  .wf-card-meta{font-size:11px;color:#64748b;display:flex;gap:6px;flex-wrap:wrap}
+  .wf-card-task{display:inline-block;padding:1px 6px;border-radius:999px;font-size:10px;font-weight:600;background:#f3f4f6;color:#374151}
+  .wf-card-date{font-size:10px;color:#9ca3af}
+  .wf-empty{text-align:center;padding:16px 8px;color:#9ca3af;font-size:11px}
+  @media(max-width:900px){.wf-board{flex-direction:column;overflow-x:visible}.wf-col{flex:1;min-width:auto;max-height:none}}
+</style>
+<link rel="stylesheet" href="/css/rtl.css">
+</head>
+<body>
+<div x-data="visetDashboard()">
+  <div class="s-hdr">
+    <div class="s-hdr-top">
+      <div>
+        <h1>👋 <span x-text="(new Date().getHours() < 12 ? VISET.__('sd.good_morning') : VISET.__('sd.good_afternoon')) + ', ' + (user?.display_name || VISET.__('sd.salesman'))"></span></h1>
+        <p><span x-text="dateStr"></span></p>
+      </div>
+        <div style="display:flex;gap:6px">
+          <button @click="VISET.toggleLang()" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;color:#fff;cursor:pointer" x-text="VISET.locale === 'en' ? 'العربية' : 'English'"></button>
+          <a href="/manager/workflow.html" x-show="_ready && VISET.can('admin.workflow')" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;color:#fff;text-decoration:none;cursor:pointer" x-text="VISET.__('nav.workflow')">📋 Workflow</a>
+          <a href="/tickets.html" x-show="_ready && (VISET.can('ticket.view') || VISET.user?.role === 'admin')" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;color:#fff;text-decoration:none;cursor:pointer" x-text="VISET.__('nav.tickets')">🎫 Tickets</a>
+          <a href="/manager/reports.html" x-show="_ready && VISET.can('reports.view')" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;color:#fff;text-decoration:none;cursor:pointer" x-text="VISET.__('nav.reports')">📊 Reports</a>
+          <button @click="logout" x-text="VISET.__('nav.logout')">🚪 Logout</button>
+        </div>
+    </div>
+  </div>
+
+  <div class="s-body">
+    <div x-show="showSuccess" x-cloak style="background:#d1fae5;color:#065f46;padding:12px 16px;border-radius:10px;font-size:14px;font-weight:600;margin-bottom:12px;text-align:center;animation:fadeIn .3s">
+      ✅ Visit submitted successfully!
+    </div>
+    <button @click="openForm" class="s-btn-primary" x-text="'➕ ' + VISET.__('sd.new_visit')"></button>
+
+    <div x-cloak x-show="pendingSync > 0" class="s-sync">
+      📶 <span x-text="pendingSync + ' ' + VISET.__('sd.pending_sync')"></span>
+      <button @click="syncOffline" x-text="VISET.__('sd.sync')"></button>
+    </div>
+
+    <!-- Workflow Board -->
+    <div style="margin-top:16px">
+      <div class="wf-board" x-show="visits.length > 0">
+        <template x-for="s in stateInfo" :key="s.key">
+          <div class="wf-col">
+            <div class="wf-col-hdr" :style="'border-color:' + s.color">
+              <span class="wf-col-title" :style="'color:' + s.color" x-text="s.label"></span>
+              <span class="wf-col-count" x-text="board.counts?.[s.key] || 0"></span>
+            </div>
+            <div class="wf-cards">
+              <template x-for="v in (board.columns?.[s.key] || [])" :key="v.id">
+                <div class="wf-card" :style="'border-left-color:' + s.color" @click="viewVisit(v)">
+                  <div class="wf-card-head">
+                    <div class="wf-card-customer" x-text="v.customer_name"></div>
+                    <span class="wf-card-id">#<span x-text="v.id"></span></span>
+                    <span class="wf-card-date" x-text="new Date(v.created_at).toLocaleDateString()"></span>
+                  </div>
+                  <div class="wf-card-body">
+                    <div class="wf-card-col">
+                      <div class="wf-card-col-label">👤 Me</div>
+                      <div class="wf-card-col-value" x-text="user?.display_name || 'You'"></div>
+                    </div>
+                    <div class="wf-card-col">
+                      <div class="wf-card-col-label">🎯 Task</div>
+                      <div class="wf-card-col-value" x-text="taskIcon(v) + ' ' + (v.visit_task || 'visit')"></div>
+                    </div>
+                    <div class="wf-card-col">
+                      <div class="wf-card-col-label">⏳ Status</div>
+                      <div class="wf-card-col-value" style="font-size:10px" x-text="statusLabel(v.status)"></div>
+                    </div>
+                  </div>
+                  <div class="wf-card-foot">
+                    <div x-show="v.visit_purpose" class="wf-card-purpose" x-text="v.visit_purpose"></div>
+                  </div>
+                </div>
+              </template>
+              <div class="wf-empty" x-show="!(board.columns?.[s.key] || []).length">No visits</div>
+            </div>
+          </div>
+        </template>
+      </div>
+      <div x-show="visits.length === 0 && !loading" class="s-empty">
+        <p>📍</p>
+        <p class="t" x-text="VISET.__('sd.ready')"></p>
+        <p class="st" x-text="VISET.__('sd.tap_start')"></p>
+      </div>
+    </div>
+
+    <div x-show="selectedVisit" class="s-modal" @click.self="selectedVisit = null">
+      <div class="s-modal-body" @click.stop>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <h2 style="font-size:17px;font-weight:700;color:#1e1b4b"><span style="color:#9ca3af;font-weight:400;font-size:14px">#<span x-text="selectedVisit?.id"></span></span> <span x-text="selectedVisit?.customer_name"></span></h2>
+          <button @click="selectedVisit = null" style="background:none;border:0;font-size:22px;color:#9ca3af;cursor:pointer">✕</button>
+        </div>
+        <div style="background:#f3f4f6;border-radius:10px;padding:12px;font-size:13px">
+          <div style="display:flex;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+            <span x-text="statusLabel(selectedVisit?.status)" style="background:#e5e7eb;padding:3px 10px;border-radius:999px;font-weight:600;font-size:12px"></span>
+            <span style="background:#e0e7ff;color:#3730a3;padding:3px 10px;border-radius:999px;font-weight:600;font-size:12px" x-text="taskIcon(selectedVisit) + ' ' + (selectedVisit?.visit_task || 'visit')"></span>
+          </div>
+          <div style="margin-top:6px"><strong x-text="VISET.__('sd.purpose') + ':'"></strong> <span x-text="selectedVisit?.visit_purpose || '—'"></span></div>
+          <div style="margin-top:2px"><strong x-text="VISET.__('sd.address') + ':'"></strong> <span x-text="selectedVisit?.address || '—'"></span></div>
+          <div style="margin-top:2px"><strong x-text="'📍 ' + VISET.__('sd.location') + ':'"></strong>
+            <template x-if="selectedVisit?.latitude">
+              <div style="margin-top:4px">
+                <iframe
+                  :src="'https://www.openstreetmap.org/export/embed.html?bbox=' + (selectedVisit.longitude - 0.01) + ',' + (selectedVisit.latitude - 0.01) + ',' + (selectedVisit.longitude + 0.01) + ',' + (selectedVisit.latitude + 0.01) + '&layer=mapnik&marker=' + selectedVisit.latitude + ',' + selectedVisit.longitude"
+                  style="width:100%;height:150px;border-radius:8px;border:1px solid #d1d5db"
+                  loading="lazy"
+                  title="Map">
+                </iframe>
+              </div>
+            </template>
+            <span x-show="!selectedVisit?.latitude">—</span>
+          </div>
+          <div x-show="selectedVisit?.photo_url" style="margin-top:6px">
+            <strong x-text="'📷 ' + VISET.__('sd.photo')"></strong>
+            <img :src="selectedVisit?.photo_url || ''" style="width:100%;border-radius:8px;margin-top:4px;cursor:pointer;border:1px solid #e5e7eb" @click="window.open(selectedVisit?.photo_url, '_blank')">
+          </div>
+          <div x-show="!selectedVisit?.photo_url" style="margin-top:2px"><strong x-text="'📷 ' + VISET.__('sd.photo') + ':'"></strong> —</div>
+          <div style="margin-top:2px"><strong x-text="VISET.__('sd.visit_date') + ':'"></strong> <span x-text="selectedVisit?.created_at"></span></div>
+        </div>
+
+        <!-- Edit section for pending visits -->
+        <div x-show="canEdit(selectedVisit)" style="margin-top:12px;border-top:1px solid #e5e7eb;padding-top:12px">
+          <strong style="font-size:14px;color:#1e1b4b" x-text="'✏️ ' + VISET.__('sd.edit_visit')"></strong>
+          <div x-show="editMsg" style="font-size:12px;padding:6px 10px;border-radius:6px;margin-top:6px" :style="editMsgType === 'success' ? 'background:#d1fae5;color:#065f46' : 'background:#fee2e2;color:#991b1b'" x-text="editMsg"></div>
+          <!-- Task type selector -->
+          <div style="margin-top:8px">
+            <label style="font-size:12px;font-weight:600;color:#374151" x-text="VISET.__('form.task_type')"></label>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">
+              <template x-for="t in taskTypes" :key="t.name">
+                <button type="button" @click="editTask = t.name" style="padding:5px 10px;font-size:11px;border-radius:6px;border:0;font-weight:600;cursor:pointer" :style="editTask === t.name ? `background:${t.color};color:#fff` : 'background:#f3f4f6;color:#374151'">
+                  <span x-text="t.icon + ' ' + (t.label || t.name)"></span>
+                </button>
+              </template>
+            </div>
+          </div>
+          <!-- Photo capture -->
+          <div style="margin-top:10px">
+            <strong style="font-size:12px;font-weight:600;color:#374151" x-text="'📷 ' + VISET.__('sd.photo')"></strong>
+            <div x-show="selectedVisit?.photo_url" style="margin-top:6px">
+              <img :src="selectedVisit?.photo_url || ''" style="max-width:100%;border-radius:8px;max-height:200px;cursor:pointer" @click="window.open(selectedVisit?.photo_url, '_blank')">
+            </div>
+            <div x-show="!selectedVisit?.photo_url" style="margin-top:6px;padding:8px 12px;background:#f3f4f6;border-radius:6px;font-size:12px;color:#9ca3af" x-text="VISET.__('sd.no_photo')"></div>
+            <button @click="editCapturePhoto" style="margin-top:6px;padding:8px 14px;background:#7c3aed;color:#fff;border:0;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer" x-text="'📸 ' + VISET.__('sd.take_photo')"></button>
+          </div>
+
+          <div style="margin-top:8px">
+            <label style="font-size:12px;font-weight:600;color:#374151" x-text="VISET.__('sd.note')"></label>
+            <textarea x-model="editNote" class="f-textarea" style="margin-top:4px;font-size:13px" rows="3" placeholder="Add or update notes..."></textarea>
+          </div>
+          <button @click="saveEdit" :disabled="savingEdit" style="width:100%;padding:10px;margin-top:8px;border-radius:8px;border:0;font-weight:600;font-size:13px;cursor:pointer;background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff" x-text="savingEdit ? VISET.__('sd.saving') : '💾 ' + VISET.__('sd.save_changes')"></button>
+
+          <div style="margin-top:12px">
+            <strong style="font-size:13px;color:#374151" x-text="'📎 ' + VISET.__('sd.documents')"></strong>
+            <template x-for="doc in (selectedVisit?.documents || [])" :key="doc.id">
+              <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f3f4f6;border-radius:8px;margin-top:6px;font-size:12px">
+                <span>📄</span>
+                <a :href="doc.file_url" target="_blank" style="color:#6366f1;text-decoration:underline;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" x-text="doc.original_name + (doc.doc_type ? ' (' + doc.doc_type + ')' : '')"></a>
+                <span x-text="(doc.file_size / 1024).toFixed(0) + 'KB'" style="color:#9ca3af;flex-shrink:0"></span>
+                <button @click="deleteDocFromVisit(selectedVisit.id, doc)" style="background:none;border:0;color:#ef4444;cursor:pointer;font-size:14px;flex-shrink:0">✕</button>
+              </div>
+            </template>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+              <button @click="uploadDocToVisit(selectedVisit.id, '')" class="v-btn v-btn-sm" style="background:#7c3aed;color:#fff;border:0;border-radius:6px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer" x-text="uploadingToVisit ? '⏳...' : '📄 ' + VISET.__('sd.add_file')"></button>
+              <template x-if="selectedVisit?.visit_task === 'opening'">
+                <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;width:100%">
+                  <button @click="uploadDocToVisit(selectedVisit.id, 'CR')" class="v-btn v-btn-sm" style="background:#0891b2;color:#fff;border:0;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer">🏢 CR</button>
+                  <button @click="uploadDocToVisit(selectedVisit.id, 'VAT')" class="v-btn v-btn-sm" style="background:#0891b2;color:#fff;border:0;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer">📋 VAT</button>
+                  <button @click="uploadDocToVisit(selectedVisit.id, 'National Address')" class="v-btn v-btn-sm" style="background:#0891b2;color:#fff;border:0;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer">📍 National Address</button>
+                  <button @click="uploadDocToVisit(selectedVisit.id, 'Application')" class="v-btn v-btn-sm" style="background:#0891b2;color:#fff;border:0;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer">📝 Application</button>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+
+        <!-- Branch Tasks -->
+        <div style="margin-top:12px;border-top:1px solid #e5e7eb;padding-top:10px">
+          <strong style="font-size:13px;color:#374151">🌿 Branch Tasks</strong>
+          <template x-for="st in selectedVisit?.sub_tasks || []" :key="st.id">
+            <div style="display:flex;align-items:center;gap:6px;padding:6px 8px;background:#f8fafc;border-radius:6px;margin-top:4px;font-size:11px;border-left:3px solid #cbd5e1">
+              <span x-text="st.visit_task === 'followup' ? '📞' : st.visit_task === 'demo' ? '📱' : st.visit_task === 'payment' ? '💰' : st.visit_task === 'callback' ? '🔙' : '🛒'"></span>
+              <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500" x-text="st.customer_name"></span>
+              <span style="font-size:9px;padding:1px 5px;border-radius:999px;font-weight:600" :style="'background:' + (st.status === 'pending' ? '#fef3c7' : st.status === 'completed' ? '#d1fae5' : '#e0e7ff') + ';color:' + (st.status === 'pending' ? '#92400e' : st.status === 'completed' ? '#065f46' : '#3730a3')" x-text="st.status"></span>
+            </div>
+          </template>
+          <div x-show="!(selectedVisit?.sub_tasks || []).length" style="font-size:11px;color:#9ca3af;padding:4px 0">No branch tasks yet</div>
+          <div x-show="!showBranchTaskForm" style="margin-top:6px">
+            <button @click="showBranchTaskForm = true; branchTaskParentId = selectedVisit?.id" style="padding:4px 10px;background:#f0fdf4;color:#065f46;border:1px dashed #86efac;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer">➕ Add Branch Task</button>
+          </div>
+          <div x-show="showBranchTaskForm" x-cloak style="margin-top:8px;padding:10px;background:#f0fdf4;border-radius:8px;border:1px solid #86efac">
+            <div style="font-size:12px;font-weight:600;color:#065f46;margin-bottom:6px">🌿 New Branch Task</div>
+            <select x-model="branchTaskType" style="width:100%;padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:11px;margin-bottom:6px">
+              <option value="followup">📞 Follow-up</option>
+              <option value="demo">📱 Demo</option>
+              <option value="payment">💰 Payment</option>
+              <option value="callback">🔙 Call Back</option>
+              <option value="order">📋 Order</option>
+              <option value="visit">🛒 Visit</option>
+            </select>
+            <input type="text" x-model="branchTaskNote" placeholder="Note / purpose..." style="width:100%;padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:11px;margin-bottom:6px">
+            <div style="display:flex;gap:4px">
+              <button @click="submitBranchTask" :disabled="savingBranch" style="flex:1;padding:6px;background:#059669;color:#fff;border:0;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer" x-text="savingBranch ? '⏳...' : '✅ Create Branch'"></button>
+              <button @click="showBranchTaskForm = false" style="padding:6px 10px;background:#e5e7eb;color:#374151;border:0;border-radius:6px;font-size:11px;cursor:pointer">Cancel</button>
+            </div>
+            <div x-show="branchMsg" style="font-size:11px;padding:4px;margin-top:4px;border-radius:4px" :style="branchMsgType==='error'?'background:#fee2e2;color:#991b1b':'background:#d1fae5;color:#065f46'" x-text="branchMsg"></div>
+          </div>
+        </div>
+
+        <!-- Documents section for all visits (visible when there are docs) -->
+        <div x-show="selectedVisit?.documents?.length && !canEdit(selectedVisit)" style="margin-top:12px;font-size:13px">
+          <strong x-text="'📎 ' + VISET.__('sd.attached_docs')"></strong>
+          <template x-for="doc in (selectedVisit?.documents || [])" :key="doc.id">
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f3f4f6;border-radius:8px;margin-top:6px;font-size:12px">
+              <span>📄</span>
+              <a :href="doc.file_url" target="_blank" style="color:#6366f1;text-decoration:underline;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" x-text="(doc.doc_type ? '[' + doc.doc_type + '] ' : '') + doc.original_name"></a>
+              <span x-text="(doc.file_size / 1024).toFixed(0) + 'KB'" style="color:#9ca3af"></span>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+
+    <div x-show="visits.length === 0 && !loading" class="s-empty">
+      <p>📍</p>
+      <p class="t" x-text="VISET.__('sd.ready')"></p>
+      <p class="st">Tap the button above to start!</p>
+    </div>
+    <div x-show="visits.length > 0 && activeTasks.length === 0 && visitHistory.length === 0 && !loading" class="s-empty">
+      <p>✅</p>
+      <p class="t" x-text="VISET.__('sd.all_caught_up')"></p>
+      <p class="st" x-text="VISET.__('sd.no_active_tasks')"></p>
+    </div>
+
+    <button @click="logout" class="s-logout-footer" x-text="VISET.__('nav.logout')">🚪 Logout</button>
+  </div>
+
+  <button @click="openForm" class="s-fab">+</button>
+
+  <div x-cloak x-show="showForm" class="s-modal" @click.self="showForm = false">
+    <div class="s-modal-body" @click.stop>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <h2 style="font-size:18px;font-weight:700;color:#1e1b4b" x-text="VISET.__('sd.new_visit')"></h2>
+        <button @click="showForm = false" style="background:none;border:0;font-size:22px;color:#9ca3af;cursor:pointer">✕</button>
+      </div>
+
+      <div x-data="visetForm()" @alpine:init="loadCustomers()">
+        <!-- Customer Type Toggle -->
+        <div class="f-group">
+          <label class="f-label"><span x-text="VISET.__('form.customer_type')"></span> <span style="color:#ef4444">*</span></label>
+          <div style="display:flex;gap:8px">
+            <button type="button" @click="customer_type='new'; selectedCustomerId=0; search=''; customer_name=''" style="flex:1;padding:12px;font-size:14px;border-radius:10px;border:0;font-weight:700;cursor:pointer" :style="customer_type==='new' ? 'background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;border:2px solid #4338ca;box-shadow:0 2px 8px rgba(99,102,241,.3)' : 'background:#e5e7eb;color:#6b7280;opacity:.6'" x-text="'🆕 ' + VISET.__('form.new_customer')"></button>
+            <button type="button" @click="customer_type='old'; new_name=''; new_address=''; new_business='retail'" style="flex:1;padding:12px;font-size:14px;border-radius:10px;border:0;font-weight:700;cursor:pointer" :style="customer_type==='old' ? 'background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border:2px solid #b45309;box-shadow:0 2px 8px rgba(245,158,11,.3)' : 'background:#e5e7eb;color:#6b7280;opacity:.6'" x-text="'🔄 ' + VISET.__('form.select_customer')"></button>
+          </div>
+        </div>
+
+        <!-- New Customer Fields -->
+        <div x-show="customer_type === 'new'" class="f-group" style="border:2px solid #c7d2fe;border-radius:12px;padding:16px;background:#eef2ff">
+          <p style="font-size:13px;font-weight:700;color:#4338ca;margin-bottom:12px">🆕 <span x-text="VISET.__('form.new_customer')"></span></p>
+          <label class="f-label"><span x-text="VISET.__('form.customer_name')"></span> <span style="color:#ef4444">*</span></label>
+          <input type="text" class="f-input" x-model="new_name" :placeholder="VISET.__('form.new_name')">
+          <div style="height:8px"></div>
+          <label class="f-label" x-text="VISET.__('form.new_address')"></label>
+          <input type="text" class="f-input" x-model="new_address" :placeholder="VISET.__('form.new_address')">
+          <div style="height:8px"></div>
+          <label class="f-label" x-text="VISET.__('form.business_type') + ' *'">Business Type <span style="color:#ef4444">*</span></label>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button type="button" @click="new_business='retail'" style="padding:8px 16px;font-size:13px;border-radius:8px;border:0;font-weight:600;cursor:pointer;flex:1;min-width:80px" :style="new_business==='retail' ? 'background:#dbeafe;color:#1e40af;border:2px solid #3b82f6' : 'background:#fff;color:#374151;border:1px solid #d1d5db'"><span x-text="VISET.__('form.retail')"></span></button>
+            <button type="button" @click="new_business='wholesale'" style="padding:8px 16px;font-size:13px;border-radius:8px;border:0;font-weight:600;cursor:pointer;flex:1;min-width:80px" :style="new_business==='wholesale' ? 'background:#dbeafe;color:#1e40af;border:2px solid #3b82f6' : 'background:#fff;color:#374151;border:1px solid #d1d5db'"><span x-text="VISET.__('form.wholesale')"></span></button>
+            <button type="button" @click="new_business='horeca'" style="padding:8px 16px;font-size:13px;border-radius:8px;border:0;font-weight:600;cursor:pointer;flex:1;min-width:80px" :style="new_business==='horeca' ? 'background:#dbeafe;color:#1e40af;border:2px solid #3b82f6' : 'background:#fff;color:#374151;border:1px solid #d1d5db'"><span x-text="VISET.__('form.horeca')"></span></button>
+          </div>
+        </div>
+
+        <!-- Old Customer Dropdown -->
+        <div x-show="customer_type === 'old'" class="f-group">
+          <label class="f-label">🔍 Account / Name</label>
+          <div style="position:relative" x-data="{ open: false }" @click.away="open = false">
+            <input type="text" class="f-input" x-model="search" @input="open = true" @keydown.escape="open = false" @click="open = !open; if(!customers.length) loadCustomers()" placeholder="🔍 Search by name or code...">
+            <div x-show="open" class="f-dropdown">
+              <template x-for="c in filteredCustomers" :key="c.id">
+                <div class="f-dropdown-item" @click="selectCustomer(c); open = false">
+                  <div style="flex:1"><div style="font-size:11px;color:#6366f1;font-weight:700" x-text="c.account"></div><div style="font-size:13px;font-weight:500" x-text="c.name"></div><div style="font-size:11px;color:#6b7280" x-text="c.address"></div></div>
+                  <span class="f-customer-bdg" :class="c.type" x-text="c.type === 'old' ? VISET.__('customers.old') : VISET.__('customers.new')"></span>
+                </div>
+              </template>
+              <div x-show="!filteredCustomers.length" class="f-dropdown-empty" x-text="VISET.__('no_data')"></div>
+            </div>
+            <div x-show="selectedCustomerId" style="margin-top:6px;padding:8px 12px;background:#fef3c7;border-radius:8px;font-size:13px;font-weight:600;color:#92400e">
+              ✅ <span style="color:#6366f1;font-weight:700" x-text="(customers.find(c => c.id === selectedCustomerId)?.account || '') + ' — ' + customer_name"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="f-group">
+          <label class="f-label"><span x-text="VISET.__('form.task_type')"></span> <span style="color:#ef4444">*</span></label>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <template x-for="t in taskOptions" :key="t.value">
+              <button type="button" @click="visit_task = t.value" style="padding:8px 14px;font-size:12px;border-radius:8px;border:0;font-weight:600;cursor:pointer;flex:1;min-width:70px" :style="visit_task===t.value ? t.style : 'background:#f3f4f6;color:#374151;opacity:.6'">
+                <span x-text="t.value === 'visit' ? VISET.__('form.visit') : t.label"></span>
+              </button>
+            </template>
+          </div>
+        </div>
+
+        <div class="f-group" style="position:relative">
+          <label class="f-label" x-text="VISET.__('form.visit_purpose')"></label>
+          <textarea class="f-textarea" x-model="visit_purpose" rows="3" :placeholder="VISET.__('sd.purpose') + '?'"></textarea>
+          <button type="button" @click="startVoice" style="position:absolute;bottom:8px;right:8px;background:none;border:0;font-size:20px;color:#9ca3af;cursor:pointer">🎤</button>
+        </div>
+
+        <div class="f-group">
+          <button type="button" @click="fetchLocation" :disabled="locating" class="f-btn" :class="locating ? 'f-btn-gray' : (locationFetched ? 'f-btn-green' : 'f-btn-primary')">
+            <span x-show="!locating && !locationFetched" x-text="VISET.__('form.capture_location')"></span>
+            <span x-show="locating">⏳ Locating...</span>
+            <span x-show="!locating && locationFetched">✅ <span x-text="VISET.__('sd.location')"></span></span>
+          </button>
+          <div x-show="address" class="f-addr" :style="geoStatusClass.includes('green') ? 'background:#f0fdf4;border-color:#86efac' : geoStatusClass.includes('blue') ? 'background:#eff6ff;border-color:#93c5fd' : 'background:#fefce8;border-color:#fde68a'">
+            <p x-text="address"></p>
+            <p class="f-coords" x-text="`${latitude}, ${longitude}`"></p>
+          </div>
+          <div x-show="!locationFetched && showManual" style="margin-top:8px">
+            <input type="text" class="f-input" x-model="manual_address" placeholder="Type address manually">
+            <button type="button" @click="useManualAddress" style="font-size:13px;color:#6366f1;background:none;border:0;cursor:pointer;margin-top:4px;text-decoration:underline" x-text="VISET.__('sd.address')"></button>
+          </div>
+        </div>
+
+        <div class="f-group">
+          <button type="button" @click="capturePhoto" class="f-btn f-btn-purple" x-text="VISET.__('form.take_photo')"></button>
+          <div x-show="photoPreview" style="margin-top:8px;position:relative;border-radius:10px;overflow:hidden">
+            <img :src="photoPreview" style="width:100%;display:block;border:1px solid #e5e7eb;border-radius:10px">
+            <span style="position:absolute;bottom:6px;left:6px;background:rgba(0,0,0,.6);color:#fff;font-size:11px;padding:3px 8px;border-radius:6px">📅 Photo</span>
+          </div>
+        </div>
+
+        <div class="f-group" style="border:1px solid #e5e7eb;border-radius:10px;padding:14px;background:#fafbff">
+          <label class="f-label" style="color:#7c3aed">📎 <span x-text="VISET.__('sd.documents')"></span></label>
+          <p style="font-size:11px;color:#9ca3af;margin-bottom:8px" x-text="VISET.__('sd.attached_docs')"></p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button type="button" @click="uploadDocument" class="f-btn" style="background:#7c3aed;padding:10px;font-size:12px;flex:1">📄 Add Document</button>
+          </div>
+          <!-- Opening task specific documents -->
+          <div x-show="visit_task === 'opening'" style="margin-top:8px;padding:10px;background:#ecfeff;border-radius:8px;border:1px solid #0891b2">
+            <p style="font-size:11px;font-weight:700;color:#0891b2;margin-bottom:6px">📋 New Customer Documents</p>
+            <div style="display:flex;gap:4px;flex-wrap:wrap">
+              <button type="button" @click="uploadDocWithType('CR')" style="background:#0891b2;color:#fff;border:0;border-radius:6px;padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer">🏢 + CR</button>
+              <button type="button" @click="uploadDocWithType('VAT')" style="background:#0891b2;color:#fff;border:0;border-radius:6px;padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer">📋 + VAT</button>
+              <button type="button" @click="uploadDocWithType('National Address')" style="background:#0891b2;color:#fff;border:0;border-radius:6px;padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer">📍 + National Address</button>
+              <button type="button" @click="uploadDocWithType('Application')" style="background:#0891b2;color:#fff;border:0;border-radius:6px;padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer">📝 + Application</button>
+            </div>
+            <template x-for="(doc, i) in documents.filter(d => d._docType)" :key="i">
+              <div style="display:flex;align-items:center;gap:6px;margin-top:6px;padding:6px 8px;background:#fff;border-radius:6px;font-size:11px">
+                <span style="font-weight:700;color:#0891b2" x-text="doc._docType"></span>
+                <span x-text="doc.original_name" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+                <button @click="documents.splice(documents.indexOf(doc), 1)" style="background:none;border:0;color:#ef4444;cursor:pointer;font-size:12px">✕</button>
+              </div>
+            </template>
+          </div>
+          <div x-show="uploadingDoc" style="font-size:12px;color:#7c3aed;margin-top:6px">⏳ Uploading...</div>
+          <template x-for="(doc, i) in documents" :key="i">
+            <div style="display:flex;align-items:center;gap:8px;margin-top:6px;padding:8px 10px;background:#f3f4f6;border-radius:8px;font-size:12px">
+              <span style="color:#7c3aed">📎</span>
+              <span x-text="(doc._docType ? '[' + doc._docType + '] ' : '') + doc.original_name" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+              <span x-text="(doc.size / 1024).toFixed(0) + 'KB'" style="color:#9ca3af;font-size:11px"></span>
+              <button @click="documents.splice(i, 1)" style="background:none;border:0;color:#ef4444;cursor:pointer;font-size:14px">✕</button>
+            </div>
+          </template>
+        </div>
+
+        <button type="button" @click="submitVisit" :disabled="submitting" class="f-btn f-btn-submit" :class="submitting ? 'f-btn-gray' : 'f-btn-submit'">
+          <span x-show="!submitting" x-text="'✅ ' + VISET.__('form.submitting').replace('...','')"></span>
+          <span x-show="submitting">⏳ <span x-text="VISET.__('form.submitting')"></span></span>
+        </button>
+
+        <div x-show="offline" style="margin-top:12px;background:#fef3c7;border:1px solid #fde68a;border-radius:10px;padding:12px;font-size:13px;text-align:center;color:#92400e">
+          📶 <span x-text="'Waiting for connection... ' + VISET.__('sd.sync')"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .f-group { margin-bottom:16px; }
+  .f-label { display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:4px; }
+  .f-input,.f-textarea { width:100%; padding:10px 14px; border:1px solid #d1d5db; border-radius:10px; font-size:14px; color:#1f2937; background:#fff; transition:border-color .15s,box-shadow .15s; }
+  .f-input:focus,.f-textarea:focus { outline:none; border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.12); }
+  .f-textarea { resize:vertical; min-height:80px; }
+  .f-btn { width:100%; padding:14px; border-radius:10px; border:0; font-size:14px; font-weight:700; color:#fff; cursor:pointer; transition:all .15s; display:flex; align-items:center; justify-content:center; gap:6px; }
+  .f-btn-primary { background:linear-gradient(135deg,#6366f1,#4f46e5); }
+  .f-btn-green { background:#059669; }
+  .f-btn-gray { background:#9ca3af; cursor:not-allowed; }
+  .f-btn-purple { background:#7c3aed; }
+  .f-btn-submit { background:linear-gradient(135deg,#059669,#047857); font-size:16px; padding:16px; border-radius:12px; }
+  .f-addr { margin-top:8px; padding:12px; border-radius:10px; font-size:13px; border:1px solid #e5e7eb; }
+  .f-coords { font-size:11px; color:#6b7280; margin-top:2px; }
+  .f-dropdown { position:absolute; z-index:20; width:100%; margin-top:2px; background:#fff; border:1px solid #e5e7eb; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,.1); max-height:200px; overflow-y:auto; }
+  .f-dropdown-item { padding:10px 14px; cursor:pointer; border-bottom:1px solid #f3f4f6; display:flex; align-items:center; justify-content:space-between; transition:background .1s; }
+  .f-dropdown-item:hover { background:#eef2ff; }
+  .f-dropdown-empty { padding:16px; text-align:center; color:#9ca3af; font-size:13px; }
+  .f-customer-bdg { font-size:11px; padding:2px 8px; border-radius:999px; font-weight:600; }
+  .f-customer-bdg.new { background:#d1fae5; color:#065f46; }
+  .f-customer-bdg.old { background:#fef3c7; color:#92400e; }
+</style>
+
+<script src="/js/lang.js"></script>
+<script src="/js/utils.js"></script>
+<script src="/js/salesman.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.12/dist/cdn.min.js"></script>
+</body>
+</html>
