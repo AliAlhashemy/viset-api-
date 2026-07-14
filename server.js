@@ -92,12 +92,8 @@ app.use((req, res, next) => {
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Cloudinary config (auto-reads CLOUDINARY_URL from .env)
-if (process.env.CLOUDINARY_URL) {
-  console.log('Cloudinary configured: image uploads enabled');
-} else {
-  console.log('Cloudinary not configured, using local file uploads');
-}
+const b2Configured = process.env.B2_APPLICATION_KEY_ID && process.env.B2_APPLICATION_KEY && process.env.B2_BUCKET_NAME;
+console.log(`Storage: ${b2Configured ? 'Backblaze B2 (signed URLs)' : 'local disk (uploads/)'}`);
 
 // Rate limit login to prevent brute force
 const loginLimiter = rateLimit({
