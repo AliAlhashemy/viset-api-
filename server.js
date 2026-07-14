@@ -10,7 +10,7 @@ const multer = require('multer');
 const jwt = require('jsonwebtoken');
 const { getDb, initDb } = require('./src/database');
 const uuid = require('uuid').v4;
-const { uploadFile: b2Upload } = require('./src/b2');
+const { uploadFile: b2Upload, createSignedUrl } = require('./src/b2');
 
 const authRoutes = require('./src/routes/auth');
 const visitRoutes = require('./src/routes/visits');
@@ -127,7 +127,7 @@ app.post('/api/upload', authenticate, (req, res, next) => {
     const filename = `photo_${Date.now()}_${uuid().slice(0, 8)}${req.file.mimetype === 'image/png' ? '.png' : '.jpg'}`;
     try {
       const result = await b2Upload(req.file.buffer, filename, req.file.mimetype);
-      res.json({ id: Date.now(), url: result.url, filename: result.key });
+      res.json({ id: Date.now(), url: `/api/files/${result.key}`, filename: result.key });
     } catch (e) {
       const url = saveToDisk(req.file.buffer, filename);
       res.json({ id: Date.now(), url, filename });
@@ -156,7 +156,7 @@ app.post('/api/upload/document', authenticate, (req, res, next) => {
       res.json({
         filename: result.key,
         original_name: req.file.originalname,
-        url: result.url,
+        url: `/api/files/${result.key}`,
         size: req.file.size,
         mimetype: req.file.mimetype,
       });
@@ -221,6 +221,18 @@ app.get('/api/diagnostics', authenticate, (req, res) => {
     has_token: !!process.env.TURSO_TOKEN,
     jwt_set: !!process.env.JWT_SECRET,
   });
+});
+
+// Serve B2 files via signed URL (authenticated via cookie or Bearer, time-limited)
+app.get('/api/files/*', async (req, res) => {
+  if (!req.user) return res.status(401).json({ error: 'Authentication required' });
+  const key = req.params[0];
+  try {
+    const signed = await createSignedUrl(key);
+    res.redirect(signed);
+  } catch (e) {
+    res.status(404).json({ error: 'File not found' });
+  }
 });
 
 // Proxy to serve Cloudinary files only (SSRF-safe)

@@ -1,6 +1,7 @@
-const { S3Client, PutObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
+const { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
+const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 
-const REGION = process.env.B2_REGION || 'us-west-001';
+const REGION = process.env.B2_REGION || 'us-east-005';
 const ENDPOINT = process.env.B2_ENDPOINT || `https://s3.${REGION}.backblazeb2.com`;
 const BUCKET = process.env.B2_BUCKET_NAME;
 
@@ -23,14 +24,9 @@ function getClient() {
   return client;
 }
 
-function publicUrl(key) {
-  const base = process.env.B2_PUBLIC_URL || `https://${BUCKET}.s3.${REGION}.backblazeb2.com`;
-  return `${base}/${key}`;
-}
-
 async function uploadFile(buffer, filename, mimetype) {
   const s3 = getClient();
-  if (!s3) throw new Error('B2 not configured — set B2_APPLICATION_KEY_ID, B2_APPLICATION_KEY, B2_BUCKET_NAME');
+  if (!s3) throw new Error('B2 not configured');
   const key = `viset/${filename}`;
   await s3.send(new PutObjectCommand({
     Bucket: BUCKET,
@@ -38,7 +34,7 @@ async function uploadFile(buffer, filename, mimetype) {
     Body: buffer,
     ContentType: mimetype || 'application/octet-stream',
   }));
-  return { url: publicUrl(key), key };
+  return { url: key, key };
 }
 
 async function deleteFile(key) {
@@ -47,4 +43,11 @@ async function deleteFile(key) {
   await s3.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: key }));
 }
 
-module.exports = { uploadFile, deleteFile, publicUrl };
+async function createSignedUrl(key, expiresIn = 300) {
+  const s3 = getClient();
+  if (!s3) throw new Error('B2 not configured');
+  const cmd = new GetObjectCommand({ Bucket: BUCKET, Key: key });
+  return getSignedUrl(s3, cmd, { expiresIn });
+}
+
+module.exports = { uploadFile, deleteFile, createSignedUrl, publicUrl: (k) => k };
